@@ -78,6 +78,7 @@
     "@arco-design/web-react": "2.39.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "antd": "^5.28.0",
+    "axios": "^1.13.2",
     "handlebars": "^4.7.7",
     "react": "16.14.0",
     "react-dom": "16.14.0",
