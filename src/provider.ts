@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getHtmlForWebview } from './utils';
-import { test } from './handler';
+import { streamAgentChat } from './handler';
 
 export interface Message {
   type: string;
@@ -28,43 +28,77 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     );
 
     webviewView.webview.onDidReceiveMessage(async (options: Message) => {
-      const { type, question, payload } = options;
+      const { type, payload } = options;
 
       switch (type) {
-        case 'test': {
-          try {
-            const questionText = question || '你可以为我做什么';
+        case 'stream-chat': {
+          const questionText = payload?.question?.trim() || '';
+          const ak = payload?.ak?.trim();
+          const apiUrl = payload?.apiUrl?.trim();
+          const conversationId = payload?.conversationId || 'GUYUTEST1';
 
-            // 发送开始消息
-            webviewView.webview.postMessage({
-              type: 'stream-start',
-              payload: {},
-            });
-
-            // 执行流式请求
-            await test(questionText, (data: any) => {
-              // 每次收到数据就发送到 webview
-              webviewView.webview.postMessage({
-                type: 'stream-data',
-                payload: {
-                  data: data,
-                },
-              });
-            });
-
-            // 发送完成消息
-            webviewView.webview.postMessage({
-              type: 'stream-end',
-              payload: {},
-            });
-          } catch (error) {
-            // 发送错误消息
+          if (!questionText) {
             webviewView.webview.postMessage({
               type: 'stream-error',
-              payload: {
-                error: error instanceof Error ? error.message : String(error),
-              },
+              payload: { error: '请输入问题后再尝试。' }
             });
+            return;
+          }
+
+          // 发送开始消息
+          webviewView.webview.postMessage({
+            type: 'stream-start',
+            payload: {},
+          });
+
+          let isCompleted = false;
+
+          try {
+            await streamAgentChat({
+              userContent: questionText,
+              conversationId,
+              ak,
+              ApiUrl: apiUrl,
+              // onMessage: (data) => {
+              //   webviewView.webview.postMessage({
+              //     type: 'stream-data',
+              //     payload: data,
+              //   });
+              // },
+              onIntervalMessage: (data) => {
+                webviewView.webview.postMessage({
+                  type: 'stream-data',
+                  payload: data,
+                });
+              },
+              onComplete: (data) => {
+                isCompleted = true;
+                webviewView.webview.postMessage({
+                  type: 'stream-end',
+                  payload: data,
+                });
+              },
+              onError: (error) => {
+                const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '未知错误');
+                webviewView.webview.postMessage({
+                  type: 'stream-error',
+                  payload: { error: message },
+                });
+              }
+            });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '未知错误');
+            webviewView.webview.postMessage({
+              type: 'stream-error',
+              payload: { error: message },
+            });
+          } finally {
+            if (!isCompleted) {
+              webviewView.webview.postMessage({
+                type: 'stream-end',
+                payload: {},
+              });
+            }
           }
           break;
         }

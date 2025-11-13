@@ -1,3 +1,25 @@
+.config-area {
+    margin-bottom: 16px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px;
+}
+
+.other-message-container {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
 /* 全局样式重置 */
 * {
     margin: 0;
