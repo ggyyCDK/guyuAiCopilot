@@ -66,71 +66,132 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
     })
 
     const stream = response.data as Readable
-    console.log('stream is:', stream)
     let buffer = ''
 
     await new Promise<void>((resolve, reject) => {
       stream.on('data', (chunk: Buffer) => {
-        console.log('chunk.toString():', chunk.toString())
         buffer += chunk.toString()
-        let separatorIndex = buffer.indexOf('\n\n')
 
-        while (separatorIndex !== -1) {
-          const rawEvent = buffer.slice(0, separatorIndex)
-          buffer = buffer.slice(separatorIndex + 2)
-          separatorIndex = buffer.indexOf('\n\n')
+        // 解析所有 data: {...} 格式的数据块
+        // 处理多个连在一起的 data: 块
+        let processedIndex = 0
 
-          const dataLines = rawEvent
-            .split('\n')
-            .filter(line => line.startsWith('data:'))
-            .map(line => line.replace(/^data:\s*/, ''))
+        while (true) {
+          const dataIndex = buffer.indexOf('data:', processedIndex)
+          if (dataIndex === -1) {
+            break
+          }
 
-          if (dataLines.length === 0) {
+          // 跳过 "data:" 和可能的空白字符，找到 JSON 对象的开始位置
+          let jsonStart = dataIndex + 5 // "data:".length
+          while (jsonStart < buffer.length && /\s/.test(buffer[jsonStart])) {
+            jsonStart++
+          }
+
+          if (jsonStart >= buffer.length || buffer[jsonStart] !== '{') {
+            processedIndex = dataIndex + 5
             continue
           }
 
-          const dataPayload = dataLines.join('\n').trim()
-          if (!dataPayload) {
-            continue
-          }
+          // 找到完整的 JSON 对象
+          let braceCount = 0
+          let inString = false
+          let escapeNext = false
+          let jsonEnd = -1
 
-          if (dataPayload === '[DONE]') {
-            isCompleted = true
-            throttleOnMessage.flush()
-            handleIntervalMessage()
-            onComplete?.({ segmentContent: '', content })
-            continue
-          }
+          for (let i = jsonStart; i < buffer.length; i++) {
+            const char = buffer[i]
 
-          const message = safetyParse(dataPayload) as ParseResult
-
-          switch (message?.eventType) {
-            case EventType.Message: {
-              const segment = message.content || ''
-              content += segment
-              cachedContent += segment
-              throttleOnMessage()
-              // onMessage?.({ segmentContent: segment, content })
-              break
+            if (escapeNext) {
+              escapeNext = false
+              continue
             }
-            case EventType.Complete: {
+
+            if (char === '\\') {
+              escapeNext = true
+              continue
+            }
+
+            if (char === '"' && !escapeNext) {
+              inString = !inString
+              continue
+            }
+
+            if (!inString) {
+              if (char === '{') {
+                braceCount++
+              } else if (char === '}') {
+                braceCount--
+                if (braceCount === 0) {
+                  jsonEnd = i + 1
+                  break
+                }
+              }
+            }
+          }
+
+          if (jsonEnd === -1) {
+            // 没有找到完整的 JSON 对象，保留这部分数据等待下次接收
+            buffer = buffer.slice(dataIndex)
+            break
+          }
+
+          // 提取并解析 JSON
+          const jsonStr = buffer.slice(jsonStart, jsonEnd)
+          processedIndex = jsonEnd
+
+          try {
+            const dataPayload = jsonStr.trim()
+            if (!dataPayload) {
+              continue
+            }
+
+            if (dataPayload === '[DONE]') {
               isCompleted = true
               throttleOnMessage.flush()
               handleIntervalMessage()
               onComplete?.({ segmentContent: '', content })
-              break
+              continue
             }
-            case EventType.MessageError: {
-              throttleOnMessage.flush()
-              handleIntervalMessage()
-              onError?.(message.content || 'stream error')
-              break
+
+            const message = safetyParse(dataPayload) as ParseResult
+            console.log('message is:', message)
+            switch (message?.eventType) {
+              case EventType.Message: {
+                const segment = message.content || ''
+                content += segment
+                cachedContent += segment
+                // throttleOnMessage()
+                onMessage?.({ segmentContent: segment, content })
+                break
+              }
+              case EventType.Complete: {
+                isCompleted = true
+                throttleOnMessage.flush()
+                handleIntervalMessage()
+                onComplete?.({ segmentContent: '', content })
+                break
+              }
+              case EventType.MessageError: {
+                throttleOnMessage.flush()
+                handleIntervalMessage()
+                onError?.(message.content || 'stream error')
+                break
+              }
+              case EventType.Usage:
+              case EventType.Null:
+              default:
+                break
             }
-            case EventType.Usage:
-            case EventType.Null:
-            default:
-              break
+          } catch (error) {
+            console.error('Error parsing JSON:', error, 'JSON string:', jsonStr)
+            // 继续处理下一个数据块
           }
+        }
+
+        // 清除已处理的数据，保留未处理的部分
+        if (processedIndex > 0) {
+          buffer = buffer.slice(processedIndex)
         }
       })
 

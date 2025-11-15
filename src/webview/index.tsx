@@ -11,11 +11,26 @@ const vscode = (window as any).acquireVsCodeApi();
 
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [streamingText, setStreamingText] = useState<string>('');
+  const [displayedText, setDisplayedText] = useState<string>('');
+  const [targetText, setTargetText] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
-  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
+  const [ak, setAk] = useState<string>('');
+  const [apiUrl, setApiUrl] = useState<string>('');
+  
+  // 打字机效果：逐渐显示文本
+  useEffect(() => {
+    if (displayedText.length < targetText.length) {
+      const timer = setTimeout(() => {
+        const nextChar = targetText[displayedText.length];
+        setDisplayedText(prev => prev + nextChar);
+      }, 20); // 每个字符间隔 20ms，可以根据需要调整速度
+      
+      return () => clearTimeout(timer);
+    }
+  }, [displayedText, targetText]);
+
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
     return () => {
@@ -31,23 +46,44 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const providerMessageHandler = function (event: any) {
     const data = event.data;
     const { type, payload } = data;
-
+    console.log('payload is:', payload)
     switch (type) {
       case 'stream-start':
         console.log('Stream started');
-        setStreamingText('');
-        setError('');
+        // setStreamingText('');
+        // setDisplayedText('');
+        // setTargetText('');
+        // setError('');
         setLoading(true);
         break;
 
       case 'stream-data':
         if (payload.segmentContent) {
-          setStreamingText(prev => prev + payload.segmentContent);
+          setStreamingText(prev => {
+            const newText = prev + payload.segmentContent;
+            setTargetText(newText); // 更新目标文本，打字机效果会自动跟上
+            return newText;
+          });
         }
         break;
 
       case 'stream-end':
         console.log('Stream ended');
+        // 确保所有文本都显示完毕
+        // 优先使用 payload.content（完整内容），否则使用函数式更新获取最新的 streamingText
+        if (payload?.content) {
+          const finalText = payload.content;
+          setDisplayedText(finalText);
+          setTargetText(finalText);
+          setStreamingText(finalText);
+        } else {
+          // 使用函数式更新确保获取到最新的 streamingText
+          setStreamingText(prev => {
+            setDisplayedText(prev);
+            setTargetText(prev);
+            return prev;
+          });
+        }
         setLoading(false);
         break;
 
@@ -61,6 +97,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
   const handleReset = () => {
     setStreamingText('');
+    setDisplayedText('');
+    setTargetText('');
     setError('');
   };
 
@@ -109,10 +147,13 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           )}
 
           {/* 打字机效果的流式文本 */}
-          {streamingText && (
+          {displayedText && (
             <div className="stream-text-container">
               <div className="stream-text-content">
-                {streamingText}
+                {displayedText}
+                {loading && displayedText.length < targetText.length && (
+                  <span className="typing-cursor">|</span>
+                )}
               </div>
             </div>
           )}

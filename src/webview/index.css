@@ -345,6 +345,15 @@
     /* letter-spacing: 0.3px; */
 }
 
+/* 打字机光标 */
+.typing-cursor {
+    display: inline-block;
+    margin-left: 2px;
+    color: rgba(255, 255, 255, 0.8);
+    animation: blink 1s infinite;
+    font-weight: 300;
+}
+
 /* 自定义滚动条 */
 .stream-text-container::-webkit-scrollbar,
 .other-messages-container::-webkit-scrollbar {
