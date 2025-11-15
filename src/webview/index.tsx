@@ -11,7 +11,6 @@ const vscode = (window as any).acquireVsCodeApi();
 
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [streamingText, setStreamingText] = useState<string>('');
-  const [otherMessages, setOtherMessages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
@@ -37,7 +36,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       case 'stream-start':
         console.log('Stream started');
         setStreamingText('');
-        setOtherMessages([]);
         setError('');
         setLoading(true);
         break;
@@ -46,9 +44,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         console.log('Stream data:', payload);
         if (payload.segmentContent) {
           setStreamingText(prev => prev + payload.segmentContent);
-        } else {
-          // 其他类型的消息
-          setOtherMessages(prev => [...prev, JSON.stringify(payload.segmentContent)]);
         }
         break;
 
@@ -67,7 +62,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
   const handleReset = () => {
     setStreamingText('');
-    setOtherMessages([]);
     setError('');
   };
 
