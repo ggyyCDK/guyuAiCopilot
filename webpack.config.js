@@ -9,6 +9,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const commonConfig = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    mainFields: ['module', 'main'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       'express-handlebars': 'handlebars/dist/handlebars.js',
@@ -71,7 +72,7 @@ const configForWebview = merge(commonConfig, {
 const extensionConfig = merge(commonConfig, {
   ...commonConfig,
   target: 'node',
-  mode: 'none',
+  mode: 'development',
   entry: './src/extension.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),

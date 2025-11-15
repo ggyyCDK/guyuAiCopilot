@@ -5,7 +5,7 @@ import { streamAgentChat } from './handler';
 export interface Message {
   type: string;
   question?: string;
-  payload?: Record<string, any>;
+  payload: Record<string, any>;
 }
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -32,12 +32,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
       switch (type) {
         case 'stream-chat': {
-          const questionText = payload?.question?.trim() || '';
-          const ak = payload?.ak?.trim();
-          const apiUrl = payload?.apiUrl?.trim();
-          const conversationId = payload?.conversationId || 'GUYUTEST1';
+          const { question, workerId, conversationId, baseUrl, variableMaps } = payload;
 
-          if (!questionText) {
+          if (!question) {
             webviewView.webview.postMessage({
               type: 'stream-error',
               payload: { error: '请输入问题后再尝试。' }
@@ -55,16 +52,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
           try {
             await streamAgentChat({
-              userContent: questionText,
+              question,
+              workerId,
               conversationId,
-              ak,
-              ApiUrl: apiUrl,
-              // onMessage: (data) => {
-              //   webviewView.webview.postMessage({
-              //     type: 'stream-data',
-              //     payload: data,
-              //   });
-              // },
+              variableMaps,
+              baseUrl,
+              onMessage: (data) => {
+                webviewView.webview.postMessage({
+                  type: 'stream-data',
+                  payload: data,
+                });
+              },
               onIntervalMessage: (data) => {
                 webviewView.webview.postMessage({
                   type: 'stream-data',

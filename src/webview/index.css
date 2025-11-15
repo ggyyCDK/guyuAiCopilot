@@ -124,6 +124,61 @@
     backdrop-filter: blur(10px);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+}
+
+/* 配置输入框容器 */
+.config-inputs {
+    margin-bottom: 12px;
+}
+
+.config-inputs .config-input:first-child {
+    margin-bottom: 8px;
+}
+
+/* 配置输入框样式 */
+.config-input {
+    width: 100%;
+    border-radius: 12px !important;
+    background: #505050 !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease;
+    font-size: 12px !important;
+    color: #cccccc !important;
+}
+
+.config-input input {
+    color: #cccccc !important;
+    font-size: 12px !important;
+    background: #505050 !important;
+}
+
+.config-input::placeholder {
+    color: #666 !important;
+    font-weight: 300 !important;
+}
+
+.config-input:hover {
+    background: #313131 !important;
+    border-color: rgba(102, 126, 234, 0.3) !important;
+}
+
+.config-input:hover input {
+    background: #313131 !important;
+    color: #cccccc !important;
+}
+
+.config-input:focus,
+.config-input:focus-within {
+    background: #313131 !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.config-input:focus input,
+.config-input:focus-within input {
+    background: #313131 !important;
+    color: #cccccc !important;
 }
 
 /* 文本输入框 */

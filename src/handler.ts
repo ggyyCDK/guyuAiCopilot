@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
+import axios from 'axios';
 import { ApiRequestParams, EventType, ParseResult } from '@/type/aiRequest'
 import { safetyParse } from '@/utils/parse'
 import { throttle } from 'lodash'
+import { Readable } from 'stream';
 
 const defaultBaseUrl = 'http://127.0.0.1:7001'
 function getWorkspaceRootPath() {
@@ -14,87 +15,143 @@ function getWorkspaceRootPath() {
 }
 
 export const streamAgentChat = async (command: ApiRequestParams) => {
-  const { userContent, conversationId, ak, ApiUrl, onMessage, onIntervalMessage, onComplete, onError } = command;
-
+  const { question, workerId, conversationId, baseUrl, variableMaps, onMessage, onIntervalMessage, onComplete, onError } = command;
+  const { llmConfig } = variableMaps ?? {}
+  const { ak, ApiUrl } = llmConfig
   let content = ''
   let cachedContent = ''
   let isCompleted = false
+  let streamClosed = false
 
   const handleIntervalMessage = () => {
     if (cachedContent) {
       const message = { segmentContent: cachedContent, content }
       onIntervalMessage?.(message)
-      cachedContent = '' //重置缓存
+      cachedContent = ''
     }
   }
 
-  //缓存返回的内容
   const throttleOnMessage = throttle(handleIntervalMessage, 500)
 
-  const question = Array.isArray(userContent) ? userContent : [
+  const questionFinalData = Array.isArray(question) ? question : [
     {
       role: 'user',
-      content: userContent
+      content: question
     }
   ]
 
-  const requestBaseUrl = (ApiUrl || defaultBaseUrl).replace(/\/$/, '')
+  const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '')
   const requestUrl = `${requestBaseUrl}/api/v1/agent/run`
 
   try {
-    await fetchEventSource(requestUrl, {
-      method: "POST",
+    const response = await axios.post(requestUrl, {
+      sessionId: conversationId,
+      workerId,
+      variableMaps: {
+        llmConfig: {
+          cwdFormatted: '/',
+          model: 'claude_sonnet4',
+          ak,
+          ApiUrl
+        }
+      },
+      question: questionFinalData,
+      stream: true
+    }, {
       headers: {
         'Content-Type': 'application/json',
         'x-ak': ak ?? ''
       },
-      body: JSON.stringify({
-        sessionId: conversationId,
-        variableMaps: {
-          workDir: getWorkspaceRootPath(),
-          model: 'claude_sonnet4'
-        },
-        question,
-        stream: true
-      }),
-      openWhenHidden: true,
-      onmessage(msg) {
-        if (!msg.data) return;
-        const message = safetyParse(msg.data) as ParseResult
-        switch (message?.eventType) {
-          case EventType.Message: {
-            content += message.content || ''
-            cachedContent += message.content || ''
-            throttleOnMessage()
-            onMessage?.({ segmentContent: message.content || '', content })
-            break
+      responseType: 'stream'
+    })
+
+    const stream = response.data as Readable
+    console.log('stream is:', stream)
+    let buffer = ''
+
+    await new Promise<void>((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => {
+        buffer += chunk.toString()
+        let separatorIndex = buffer.indexOf('\n\n')
+
+        while (separatorIndex !== -1) {
+          const rawEvent = buffer.slice(0, separatorIndex)
+          buffer = buffer.slice(separatorIndex + 2)
+          separatorIndex = buffer.indexOf('\n\n')
+
+          const dataLines = rawEvent
+            .split('\n')
+            .filter(line => line.startsWith('data:'))
+            .map(line => line.replace(/^data:\s*/, ''))
+
+          if (dataLines.length === 0) {
+            continue
           }
-          case EventType.Complete: {
+
+          const dataPayload = dataLines.join('\n').trim()
+          if (!dataPayload) {
+            continue
+          }
+
+          if (dataPayload === '[DONE]') {
             isCompleted = true
+            throttleOnMessage.flush()
             handleIntervalMessage()
             onComplete?.({ segmentContent: '', content })
-            break
+            continue
           }
-          case EventType.MessageError: {
-            handleIntervalMessage()
-            onError?.(message.content || 'stream error')
-            break
+
+          const message = safetyParse(dataPayload) as ParseResult
+
+          switch (message?.eventType) {
+            case EventType.Message: {
+              const segment = message.content || ''
+              content += segment
+              cachedContent += segment
+              throttleOnMessage()
+              onMessage?.({ segmentContent: segment, content })
+              break
+            }
+            case EventType.Complete: {
+              isCompleted = true
+              throttleOnMessage.flush()
+              handleIntervalMessage()
+              onComplete?.({ segmentContent: '', content })
+              break
+            }
+            case EventType.MessageError: {
+              throttleOnMessage.flush()
+              handleIntervalMessage()
+              onError?.(message.content || 'stream error')
+              break
+            }
+            case EventType.Usage:
+            case EventType.Null:
+            default:
+              break
           }
         }
-      },
-      onerror(err) {
-        handleIntervalMessage()
-        onError?.(err)
-        throw err
-      }
+      })
+
+      stream.on('end', () => {
+        streamClosed = true
+        resolve()
+      })
+
+      stream.on('error', (err) => {
+        streamClosed = true
+        reject(err)
+      })
     })
   } catch (error) {
     handleIntervalMessage()
     onError?.(error)
   } finally {
     throttleOnMessage.cancel()
-    if (!isCompleted) {
+    if (!streamClosed) {
       handleIntervalMessage()
+    }
+    if (!isCompleted) {
       onComplete?.({ segmentContent: '', content })
     }
   }

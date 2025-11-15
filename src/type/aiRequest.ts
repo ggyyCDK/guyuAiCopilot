@@ -5,10 +5,11 @@ export interface IMessageResult {
 }
 
 export interface ApiRequestParams {
-    userContent: string | any;
+    question: string | any;
     conversationId?: string;
-    ak?: string
-    ApiUrl?: string;
+    baseUrl: string;
+    workerId: string;
+    variableMaps?: Record<string, any>;
     onMessage?: (message: IMessageResult) => void;
     onIntervalMessage?: (message: IMessageResult) => void;
     onComplete?: (message: IMessageResult) => void;

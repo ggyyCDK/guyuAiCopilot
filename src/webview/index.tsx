@@ -15,7 +15,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-
+  const [ak, setAk] = useState<string>('');
+  const [apiUrl, setApiUrl] = useState<string>('');
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
     return () => {
@@ -42,26 +43,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         break;
 
       case 'stream-data':
-        console.log('Stream data:', payload.data);
-
-        // 解析数据
-        let messageData = payload.data;
-        if (typeof messageData === 'string') {
-          try {
-            messageData = JSON.parse(messageData);
-          } catch (e) {
-            // 如果无法解析为 JSON，作为其他消息处理
-            setOtherMessages(prev => [...prev, messageData]);
-            return;
-          }
-        }
-
-        // 处理 text-delta 类型的消息 - 打字机效果
-        if (messageData.type === 'text-delta' && messageData.payload?.text) {
-          setStreamingText(prev => prev + messageData.payload.text);
+        console.log('Stream data:', payload);
+        if (payload.segmentContent) {
+          setStreamingText(prev => prev + payload.segmentContent);
         } else {
           // 其他类型的消息
-          setOtherMessages(prev => [...prev, JSON.stringify(messageData)]);
+          setOtherMessages(prev => [...prev, JSON.stringify(payload.segmentContent)]);
         }
         break;
 
@@ -86,7 +73,21 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
   const handleSend = () => {
     if (!question.trim() || loading) return;
-    vscode.postMessage({ type: 'test', question });
+    vscode.postMessage({
+      type: 'stream-chat',
+      payload: {
+        question,
+        conversationId: 'GUYUTEST1',
+        workerId: 'guyu',
+        variableMaps: {
+          llmConfig: {
+            ak: ak,
+            ApiUrl: apiUrl
+          }
+        },
+        baseUrl: 'http://127.0.0.1:7001',
+      }
+    });
     setQuestion(''); // 发送后清空输入框
   };
 
@@ -125,6 +126,22 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         </div>
 
         <div className="input-container">
+          <div className="config-inputs">
+            <Input
+              placeholder="请输入访问密钥 (AK)"
+              value={ak}
+              onChange={(e) => setAk(e.target.value)}
+              disabled={loading}
+              className="config-input"
+            />
+            <Input
+              placeholder="请输入 API 服务地址"
+              value={apiUrl}
+              onChange={(e) => setApiUrl(e.target.value)}
+              disabled={loading}
+              className="config-input"
+            />
+          </div>
           <Input.TextArea
             style={{ color: '#fff' }}
             placeholder="请输入你的问题，比如：如何优化这段代码？（按 Enter 发送，Shift+Enter 换行）"
