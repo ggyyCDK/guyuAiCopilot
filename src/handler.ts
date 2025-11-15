@@ -71,6 +71,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
 
     await new Promise<void>((resolve, reject) => {
       stream.on('data', (chunk: Buffer) => {
+        console.log('chunk.toString():', chunk.toString())
         buffer += chunk.toString()
         let separatorIndex = buffer.indexOf('\n\n')
 
@@ -109,7 +110,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
               content += segment
               cachedContent += segment
               throttleOnMessage()
-              onMessage?.({ segmentContent: segment, content })
+              // onMessage?.({ segmentContent: segment, content })
               break
             }
             case EventType.Complete: {

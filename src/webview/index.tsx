@@ -14,8 +14,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('');
-  const [apiUrl, setApiUrl] = useState<string>('');
+  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
+  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
     return () => {
@@ -41,7 +41,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         break;
 
       case 'stream-data':
-        console.log('Stream data:', payload);
         if (payload.segmentContent) {
           setStreamingText(prev => prev + payload.segmentContent);
         }
