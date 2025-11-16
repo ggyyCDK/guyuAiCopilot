@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDom from 'react-dom';
-
-import { Button, Input } from 'antd';
-import '@arco-design/web-react/dist/css/arco.css';
+import { useIMStore } from '@/store/imStore/createStore'
+import { Input } from 'antd';
 import './index.css';
 
 interface ISidebarProps { }
@@ -16,20 +15,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('');
-  const [apiUrl, setApiUrl] = useState<string>('');
-  
-  // 打字机效果：逐渐显示文本
-  useEffect(() => {
-    if (displayedText.length < targetText.length) {
-      const timer = setTimeout(() => {
-        const nextChar = targetText[displayedText.length];
-        setDisplayedText(prev => prev + nextChar);
-      }, 20); // 每个字符间隔 20ms，可以根据需要调整速度
-      
-      return () => clearTimeout(timer);
-    }
-  }, [displayedText, targetText]);
+  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
+  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
+  const { chatMessages } = useIMStore.getState()
 
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
@@ -58,13 +46,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         break;
 
       case 'stream-data':
-        if (payload.segmentContent) {
-          setStreamingText(prev => {
-            const newText = prev + payload.segmentContent;
-            setTargetText(newText); // 更新目标文本，打字机效果会自动跟上
-            return newText;
-          });
-        }
+        console.log('chatMessages is:', chatMessages)
         break;
 
       case 'stream-end':
@@ -162,7 +144,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         <div className="input-container">
           <div className="config-inputs">
             <Input
-              placeholder="请输入访问密钥 (AK)"
+              placeholder="请输入访问密钥 (AK)11"
               value={ak}
               onChange={(e) => setAk(e.target.value)}
               disabled={loading}

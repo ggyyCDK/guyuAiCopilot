@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { getHtmlForWebview } from './utils';
-import { streamAgentChat, attemptApiRequestTypeWriter } from './handler';
-
+import { getHtmlForWebview } from './webViewutils';
+import { attemptApiRequestTypeWriter } from './handler';
+import { parseAssistantMessageV2 } from '@/utils/llmRequest/parseAssisantMessage'
+import { useIMStore } from './store/imStore/createStore';
 
 export interface Message {
   type: string;
@@ -30,7 +31,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (options: Message) => {
       const { type, payload } = options;
-
+      const { mergeMessages } = useIMStore.getState()
       switch (type) {
         case 'stream-chat': {
           const { question, workerId, conversationId, baseUrl, variableMaps } = payload;
@@ -52,39 +53,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           let isCompleted = false;
 
           try {
-            await attemptApiRequestTypeWriter({
+            const stream = await attemptApiRequestTypeWriter({
               question,
               workerId,
               conversationId,
               variableMaps,
               baseUrl,
-              onMessage: (data) => {
-                webviewView.webview.postMessage({
-                  type: 'stream-data',
-                  payload: data,
-                });
-              },
-              onIntervalMessage: (data) => {
-                webviewView.webview.postMessage({
-                  type: 'stream-data',
-                  payload: data,
-                });
-              },
-              onComplete: (data) => {
-                isCompleted = true;
-                webviewView.webview.postMessage({
-                  type: 'stream-end',
-                  payload: data,
-                });
-              },
-              onError: (error) => {
-                const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '未知错误');
-                webviewView.webview.postMessage({
-                  type: 'stream-error',
-                  payload: { error: message },
-                });
-              }
             });
+            let assistantMessage = '';
+            for await (const chunk of stream) {
+              console.log(chunk, 'chunk')
+              assistantMessage += chunk;
+              const serverMessageList = parseAssistantMessageV2(assistantMessage)
+              
+              webviewView.webview.postMessage({
+                type: 'stream-data',
+                payload: serverMessageList,
+              });
+              console.log('serverMessageList is:', serverMessageList)
+            }
           } catch (error) {
             const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '未知错误');
             webviewView.webview.postMessage({

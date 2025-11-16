@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import { ApiRequestParams, EventType, ParseResult } from '@/type/aiRequest'
+import { ApiRequestParams, EventType, ParseResult } from '@/type/imType/aiRequest'
 import { safetyParse } from '@/utils/parse'
 import { typewriter } from '@/utils/llmUtils/typewriter'
 import { throttle } from 'lodash'
@@ -41,6 +41,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
   const handleIntervalMessage = () => {
     if (cachedContent) {
       const message = { segmentContent: cachedContent, content }
+      console.log('throttle message is:', message)
       onIntervalMessage?.(message)
       cachedContent = ''
     }
@@ -82,19 +83,18 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
     })
 
     const stream = response.data as Readable
-    let buffer = ''
 
     await new Promise<void>((resolve, reject) => {
       stream.on('data', (chunk: Buffer) => {
         const dataPayload = chunk.toString()
         const message = safetyParse(dataPayload) as ParseResult
-        console.log('message is:', message)
+        console.log('out message is:', message, message?.eventType)
         switch (message?.eventType) {
           case EventType.Message: {
             const segment = message.content || ''
             content += segment
             cachedContent += segment
-            // throttleOnMessage()
+            throttleOnMessage()
             onMessage?.({ segmentContent: segment, content })
             break
           }
@@ -166,7 +166,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
       reject(error)
     }
   })
-
+  console.log('responseBufferList is:', responseBufferList)
   while (!isCompleted || responseBufferList.length > 0) {
     const responseBuffer = responseBufferList.shift()
     if (responseBuffer) {
