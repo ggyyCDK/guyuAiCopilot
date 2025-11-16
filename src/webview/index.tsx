@@ -52,25 +52,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         mergeMessages(serverMessageList.map(transformServerMessage))
         break;
 
-      case 'stream-end':
-        console.log('Stream ended');
-        // 确保所有文本都显示完毕
-        // 优先使用 payload.content（完整内容），否则使用函数式更新获取最新的 streamingText
-        if (payload?.content) {
-          const finalText = payload.content;
-          setDisplayedText(finalText);
-          setTargetText(finalText);
-          setStreamingText(finalText);
-        } else {
-          // 使用函数式更新确保获取到最新的 streamingText
-          setStreamingText(prev => {
-            setDisplayedText(prev);
-            setTargetText(prev);
-            return prev;
-          });
-        }
-        setLoading(false);
-        break;
+
 
       case 'stream-error':
         console.error('Stream error:', payload.error);
