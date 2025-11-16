@@ -33,6 +33,6 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
     },
     getLastMessage: () => {
         return get().chatMessages[get().chatMessages.length - 1]
-    }
-
+    },
+    shallow
 }))
