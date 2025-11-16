@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDom from 'react-dom';
 import { useIMStore } from '@/store/imStore/createStore'
+import { transformServerMessage } from '@/utils/llmRequest/transformServerMessage'
 import { Input } from 'antd';
 import './index.css';
 
@@ -15,9 +16,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('');
-  const [apiUrl, setApiUrl] = useState<string>('');
-  const { chatMessages } = useIMStore.getState()
+  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
+  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
+  const { chatMessages, mergeMessages } = useIMStore.getState()
 
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
@@ -34,7 +35,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const providerMessageHandler = function (event: any) {
     const data = event.data;
     const { type, payload } = data;
-    console.log('payload is:', payload)
+    console.log('payload is23:', event)
     switch (type) {
       case 'stream-start':
         console.log('Stream started');
@@ -46,7 +47,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         break;
 
       case 'stream-data':
-        console.log('chatMessages is:', chatMessages)
+        const { serverMessageList } = payload
+        console.log('serverMessageList 1is:', serverMessageList)
+        mergeMessages(serverMessageList.map(transformServerMessage))
         break;
 
       case 'stream-end':
@@ -111,12 +114,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       handleSend();
     }
   };
-
+  
   return (
     <>
       <div className='aiLayout'>
         <div className="app-header">
-          <div className="app-title">✨ SchooberAi 助手</div>
+          <div className="app-title">✨ SchooberAi 助手1</div>
           <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
         </div>
 

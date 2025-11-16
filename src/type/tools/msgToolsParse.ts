@@ -1,8 +1,12 @@
 export type AssistantMessageContent = TextContent | ToolUse
 
 export interface TextContent {
+    id: string;
+    cid: string;
     type: "text"
-    content: string
+    content:{
+        text: string
+    }
     partial: boolean
 }
 
@@ -63,8 +67,10 @@ export const toolParamNames = [
 export type ToolParamName = (typeof toolParamNames)[number]
 
 export interface ToolUse {
-    type: "tool_use"
-    name: ToolUseName
+    id: string;
+    cid: string;
+    type: "tool_use";
+    name: ToolUseName;
     // params is a partial record, allowing only some or none of the possible parameters to be used
     params: Partial<Record<ToolParamName, string>>
     partial: boolean

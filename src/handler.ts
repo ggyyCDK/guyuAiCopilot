@@ -49,7 +49,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
 
   const throttleOnMessage = throttle(handleIntervalMessage, 500)
 
-  const questionFinalData = Array.isArray(question) ? question : [
+  const questionFinalData = [
     {
       role: 'user',
       content: question

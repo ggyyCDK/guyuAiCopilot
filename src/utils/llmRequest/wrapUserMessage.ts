@@ -26,18 +26,24 @@ export interface ToolResultBlockParam {
 export type UserContent = Array<TextBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
 
 const isUserMessage = (text: string) => text.includes('<feedback>') || text.includes('<answer>');
-export const wrapUserMessage = async function (command: { userContent: UserContent }) {
+export const wrapUserMessage = async function (command: { userContent: UserContent, includeFileDetails?: boolean }): Promise<{
+    parsedUserContentList: any,
+    environmentDetails: any
+}> {
     const { userContent } = command;//获取用户输入，也可能是大模型拼接后的输入
+    console.log('wrapUserMessage', userContent)
     const parsedUserContentList = await Promise.all(
         userContent.map(async block => {
             //文字解析
             if (block.type === 'text') {
+                console.log('block.text', block.text)
                 if (isUserMessage(block.text)) {
                     return {
                         ...block,
                         text: block.text
                     }
                 }
+                return block;
             } else if (block.type === 'tool_result') {
                 //递归输入的工具解析
                 if (typeof block.content === 'string' && isUserMessage(block.content)) {

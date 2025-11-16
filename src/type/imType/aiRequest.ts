@@ -28,3 +28,12 @@ export interface ParseResult {
     eventType: EventType;
     content: string;
 }
+
+export interface multiRoundTaskParams {
+    question: string | any;
+    workerId: string;
+    conversationId?: string;
+    baseUrl: string;
+    variableMaps?: Record<string, any>;
+    includeFileDetails?: boolean;
+}

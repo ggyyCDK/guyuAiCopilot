@@ -141,14 +141,14 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
                 if (currentCharIndex >= tag.length - 1 && assistantMessage.startsWith(tag, currentCharIndex - tag.length + 1)) {
                     // End current text block if one was active
                     if (currentTextContent) {
-                        currentTextContent.content = assistantMessage
+                        currentTextContent.content.text = assistantMessage
                             .slice(
                                 currentTextContentStart, // From where text started
                                 currentCharIndex - tag.length + 1, // To before the tool tag starts
                             )
                             .trim()
                         currentTextContent.partial = false // Ended because tool started
-                        if (currentTextContent.content.length > 0) {
+                        if (currentTextContent.content.text.length > 0) {
                             contentBlocks.push(currentTextContent)
                         }
                         currentTextContent = undefined
@@ -162,8 +162,10 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
                             .trim()
                         if (potentialText.length > 0) {
                             contentBlocks.push({
+                                id: '',
+                                cid: '',
                                 type: "text",
-                                content: potentialText,
+                                content: { text: potentialText as string },
                                 partial: false,
                             })
                         }
@@ -171,6 +173,8 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 
                     // Start the new tool use
                     currentToolUse = {
+                        id: '',
+                        cid: '',
                         type: "tool_use",
                         name: toolName,
                         params: {},
@@ -197,8 +201,10 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
                 // The logic managing currentTextContentStart after closing tags handles this.
 
                 currentTextContent = {
+                    id: '',
+                    cid: '',
                     type: "text",
-                    content: "", // Will be determined by slicing at the end or when a tool starts
+                    content: { text: '' }, // Will be determined by slicing at the end or when a tool starts
                     partial: true,
                 }
             }
@@ -225,11 +231,11 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
     // Only possible if a tool use wasn't open at the very end
     else if (currentTextContent) {
         currentTextContent.partial = false
-        currentTextContent.content = assistantMessage
+        currentTextContent.content.text = assistantMessage
             .slice(currentTextContentStart) // From text start to end of string
             .trim()
         // Text is partial because the loop finished
-        if (currentTextContent.content.length > 0) {
+        if (currentTextContent.content.text.length > 0) {
             contentBlocks.push(currentTextContent)
         }
     }
