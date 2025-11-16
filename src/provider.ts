@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getHtmlForWebview } from './utils';
-import { streamAgentChat } from './handler';
+import { streamAgentChat, attemptApiRequestTypeWriter } from './handler';
+
 
 export interface Message {
   type: string;
@@ -51,7 +52,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           let isCompleted = false;
 
           try {
-            await streamAgentChat({
+            await attemptApiRequestTypeWriter({
               question,
               workerId,
               conversationId,

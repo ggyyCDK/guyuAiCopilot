@@ -3,6 +3,7 @@
   "displayName": "vscode-extension-test",
   "description": "",
   "version": "0.0.1",
+  "publisher": "guyu",
   "engines": {
     "vscode": "^1.68.0"
   },
@@ -53,8 +54,8 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^16.11.45",
-    "@types/react": "^16.8.0",
-    "@types/react-dom": "16.9.14",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "18.2.0",
     "@types/semver": "~7.3.13",
     "@types/styled-components": "~5.1.26",
     "@types/vscode": "^1.57.1",
@@ -80,8 +81,10 @@
     "antd": "^5.28.0",
     "axios": "^1.13.2",
     "handlebars": "^4.7.7",
-    "react": "16.14.0",
-    "react-dom": "16.14.0",
-    "styled-components": "~5.3.6"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "~5.3.6",
+    "uuid": "^10.0.0",
+    "zustand": "^4.5.5"
   }
 }
