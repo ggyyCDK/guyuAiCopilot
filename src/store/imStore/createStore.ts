@@ -6,7 +6,7 @@ import { merge } from 'lodash'
 
 interface Action {
     //合并消息
-    mergeMessages: (newMessages: Array<Partial<ChatMessage<any>>>) => void
+    mergeMessages: (newMessages: Array<ChatMessage>) => void
     //获取最后一条消息
     getLastMessage: () => ChatMessage | undefined
 
@@ -31,6 +31,8 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
         })
 
     },
-    getLastMessage: () => { }
+    getLastMessage: () => {
+        return get().chatMessages[get().chatMessages.length - 1]
+    }
 
 }))
