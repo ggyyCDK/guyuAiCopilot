@@ -3,12 +3,10 @@ import { wrapUserMessage } from '@/utils/llmRequest/wrapUserMessage'
 import { parseAssistantMessageV2 } from '@/utils/llmRequest/parseAssisantMessage'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
 import * as vscode from 'vscode'
-import { useIMStore } from '@/store/imStore/createStore';
 
 export const recursivelyMakeRequests = async function (command: multiRoundTaskParams, webviewView: vscode.WebviewView) {
 
     const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails } = command;
-    const { mergeMessages } = useIMStore.getState()
     if (!question) {
         webviewView.webview.postMessage({
             type: 'stream-error',

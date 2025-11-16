@@ -1,4 +1,5 @@
-declare namespace Intl {
+declare global {
+  namespace Intl {
     interface SegmenterOptions {
       granularity?: 'grapheme' | 'word' | 'sentence';
       localeMatcher?: 'lookup' | 'best fit';
@@ -19,4 +20,6 @@ declare namespace Intl {
       resolvedOptions(): { locale: string; granularity: string };
     }
   }
-  export {};
+}
+
+export {};

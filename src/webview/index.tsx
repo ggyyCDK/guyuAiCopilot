@@ -35,7 +35,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const providerMessageHandler = function (event: any) {
     const data = event.data;
     const { type, payload } = data;
-    console.log('payload is23:', event)
     switch (type) {
       case 'stream-start':
         console.log('Stream started');
@@ -48,7 +47,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
       case 'stream-data':
         const { serverMessageList } = payload
-        console.log('serverMessageList 1is:', serverMessageList)
         mergeMessages(serverMessageList.map(transformServerMessage))
         break;
 
@@ -101,7 +99,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     <>
       <div className='aiLayout'>
         <div className="app-header">
-          <div className="app-title">✨ SchooberAi 助手1</div>
+          <div className="app-title">✨ SchooberAi 助手111</div>
           <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
         </div>
 
