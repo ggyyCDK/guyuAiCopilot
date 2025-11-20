@@ -4,7 +4,7 @@ export interface TextContent {
     id: string;
     cid: string;
     type: "text"
-    content:{
+    content: {
         text: string
     }
     partial: boolean
@@ -63,6 +63,13 @@ export const toolParamNames = [
     "api_request_output",
     "additional_context",
 ] as const
+
+export type IToolExecutor = (
+    command: {
+        toolUseCommand: ToolUse
+    },
+    callBack?: () => Promise<any>
+) => Promise<{ toolResult: string }>
 
 export type ToolParamName = (typeof toolParamNames)[number]
 
