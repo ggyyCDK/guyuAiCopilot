@@ -5,11 +5,10 @@ const path = require('path');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const merge = require('webpack-merge').default;
 const CopyPlugin = require('copy-webpack-plugin');
-
+const isProduction = process.argv.includes('production');
 const commonConfig = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
-    mainFields: ['module', 'main'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       'express-handlebars': 'handlebars/dist/handlebars.js',
@@ -66,13 +65,34 @@ const configForWebview = merge(commonConfig, {
       ],
     }),
   ],
+  devtool: isProduction ? false : 'inline-source-map',
+  // ✅ Watch 配置
+  ...(isProduction ? {} : {
+    watch: true,
+    watchOptions: {
+      aggregateTimeout: 300,
+      poll: 1000,
+      ignored: ['**/node_modules', '**/dist'],
+    },
+  }),
+  // ✅ 缓存配置（加速编译）
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
+  // ✅ 性能提示
+  performance: {
+    hints: false,
+  },
 });
 
 /** @type WebpackConfig */
 const extensionConfig = merge(commonConfig, {
   ...commonConfig,
   target: 'node',
-  mode: 'development',
+  mode: 'none',
   entry: './src/extension.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
