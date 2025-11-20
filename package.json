@@ -82,6 +82,7 @@
     "antd": "^5.23.0",
     "axios": "^1.13.2",
     "handlebars": "^4.7.7",
+    "p-wait-for": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "styled-components": "~5.3.6",

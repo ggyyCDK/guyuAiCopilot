@@ -5,7 +5,7 @@ import { pushToolResult } from "@/utils/assisantPresentStore/toolUtils/pushToolR
 import { getToolDescription } from "@/utils/assisantPresentStore/toolUtils/getToolDescription";
 import { readFile } from "@/helper/tools/readFiles";
 
-import { getEnvironmentDetails } from "@/helper/environment/getEnvironmentDetails";
+import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
 
 const createToolRejectionMessage = (block: ToolUse, reason: string): void => {
     multiRoundSharedState.userMessageContent.push({
@@ -13,7 +13,6 @@ const createToolRejectionMessage = (block: ToolUse, reason: string): void => {
         text: `${reason} ${getToolDescription(block)}`,
     })
 }
-
 
 export const parseToolUse = async (block: ToolUse) => {
     if (multiRoundSharedState.didRejectTool) {
@@ -32,8 +31,8 @@ export const parseToolUse = async (block: ToolUse) => {
         return true
     }
 
-    const visibleFiles = '';
-    const openTabs = '';
+    const visibleFiles = getVisibleFiles();
+    const openTabs = getOpenTabs();
     switch (block.name) {
         case 'read_file':
             if (block.partial) {

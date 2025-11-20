@@ -36,6 +36,6 @@ let multiRoundSharedState: MultiRoundSharedState = {
 };
 
 // @ts-ignore
-window.multiRoundSharedState = multiRoundSharedState;
+// window.multiRoundSharedState = multiRoundSharedState;
 
 export { multiRoundSharedState };

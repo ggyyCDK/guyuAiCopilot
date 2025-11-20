@@ -1,9 +1,12 @@
 import { attemptApiRequestTypeWriter } from '@/handler';
 import { wrapUserMessage } from '@/utils/llmRequest/wrapUserMessage'
 import { parseAssistantMessageV2 } from '@/utils/llmRequest/parseAssisantMessage'
+import { formatResponse } from '@/helper/responsePrompt/responseFormatter'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
+import { multiRoundSharedState } from '../assisantPresentStore/multiRoundSharedState';
+import { presentAssistantMessage, resetMultiRoundSharedState } from '../assisantPresentStore/presentAssistantMessage';
 import * as vscode from 'vscode'
-
+import pWaitFor from 'p-wait-for';
 export const recursivelyMakeRequests = async function (command: multiRoundTaskParams, webviewView: vscode.WebviewView) {
 
     const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails } = command;
@@ -13,6 +16,10 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
             payload: { error: '请输入问题后再尝试。' }
         });
         return;
+    }
+
+    if (multiRoundSharedState.abort) {
+        throw new Error("Aborted");
     }
 
     console.log('question is', question)
@@ -27,6 +34,11 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
     if (includeFileDetails) {
         parsedUserContentList.push({ type: 'text', text: environmentDetails })
     }
+    let didEndLoop = false
+
+    //每次新的递归重置状态
+    resetMultiRoundSharedState()
+
     try {
         const stream = await attemptApiRequestTypeWriter({
             question: parsedUserContentList,
@@ -38,14 +50,61 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         let assistantMessage = '';
         for await (const chunk of stream) {
             assistantMessage += chunk;
+            const previousLength = multiRoundSharedState.assistantMessageContent.length;
             const serverMessageList = parseAssistantMessageV2(assistantMessage)
+            multiRoundSharedState.assistantMessageContent = serverMessageList
 
             // mergeMessages(serverMessageList.map(transformServerMessage))
             webviewView.webview.postMessage({
                 type: 'stream-data',
                 payload: { serverMessageList },
             });
+
+            if (multiRoundSharedState.assistantMessageContent.length > previousLength) {
+                multiRoundSharedState.userMessageContentReady = false;
+            }
+            //助手消息处理
+            presentAssistantMessage();
         }
+        console.log('助手消息处理完毕')
+        multiRoundSharedState.didCompleteReadingStream = true;
+        // set any blocks to be complete to allow presentAssistantMessage to finish and set userMessageContentReady to true
+        // (could be a text block that had no subsequent tool uses, or a text block at the very end, or an invalid tool use, etc. whatever the case, presentAssistantMessage relies on these blocks either to be completed or the user to reject a block in order to proceed and eventually set userMessageContentReady to true)
+        const partialBlocks = multiRoundSharedState.assistantMessageContent.filter((block) => block.partial)
+        partialBlocks.forEach((block) => {
+            block.partial = false
+        })
+        // this.assistantMessageContent.forEach((e) => (e.partial = false)) // can't just do this bc a tool could be in the middle of executing ()
+        if (partialBlocks.length > 0) {
+            presentAssistantMessage() // if there is content to update then it will complete and update this.userMessageContentReady to true, which we pwaitfor before making the next request. all this is really doing is presenting the last partial message that we just set to complete
+        }
+
+
+        if (assistantMessage.length > 0) {
+            // NOTE: this comment is here for future reference - this was a workaround for userMessageContent not getting set to true. It was due to it not recursively calling for partial blocks when didRejectTool, so it would get stuck waiting for a partial block to complete before it could continue.
+            // in case the content blocks finished
+            // it may be the api stream finished after the last parsed content block was executed, so  we are able to detect out of bounds and set userMessageContentReady to true (note you should not call presentAssistantMessage since if the last block is completed it will be presented again)
+            // const completeBlocks = this.assistantMessageContent.filter((block) => !block.partial) // if there are any partial blocks after the stream ended we can consider them invalid
+            // if (this.currentStreamingContentIndex >= completeBlocks.length) {
+            // 	this.userMessageContentReady = true
+            // }
+
+            await pWaitFor(() => multiRoundSharedState.userMessageContentReady)
+
+            // if the model did not tool use, then we need to tell it to either use a tool or attempt_completion
+            const didToolUse = multiRoundSharedState.assistantMessageContent.some((block) => block.type === "tool_use")
+
+            if (!didToolUse) {
+                // normal request where tool use is required
+                multiRoundSharedState.userMessageContent.push({
+                    type: "text",
+                    text: formatResponse.noToolsUsed(true),
+                })
+                const recDidEndLoop = await recursivelyMakeRequests({ ...command, question: multiRoundSharedState.userMessageContent }, webviewView)
+                didEndLoop = recDidEndLoop
+            }
+        }
+
     } catch (error) {
         const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '未知错误');
         webviewView.webview.postMessage({
@@ -53,5 +112,5 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
             payload: { error: message },
         });
     }
-
+    return didEndLoop
 }

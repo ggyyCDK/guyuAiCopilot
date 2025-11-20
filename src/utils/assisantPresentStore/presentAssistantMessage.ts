@@ -13,6 +13,7 @@
 
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 import { parseText } from '@/utils/assisantPresentStore/parseText';
+import { parseToolUse } from '@/utils/assisantPresentStore/toolExecutor';
 import { cloneDeep } from 'lodash';
 
 /**
@@ -78,7 +79,7 @@ export const presentAssistantMessage = async function () {
 
         case 'tool_use':
             // 异步处理工具使用
-            // await parseToolUse(block);
+            await parseToolUse(block);
             // console.log('tool_use:', block);
             break;
     }
@@ -134,3 +135,16 @@ export const presentAssistantMessage = async function () {
         void presentAssistantMessage();
     }
 };
+
+
+export const resetMultiRoundSharedState = () => {
+    // reset streaming state
+    multiRoundSharedState.currentStreamingContentIndex = 0;
+    multiRoundSharedState.assistantMessageContent = [];
+    multiRoundSharedState.didCompleteReadingStream = false;
+    multiRoundSharedState.userMessageContentReady = false;
+    multiRoundSharedState.userMessageContent = [];
+    multiRoundSharedState.didAlreadyUseTool = false;
+    multiRoundSharedState.presentAssistantMessageLocked = false;
+    multiRoundSharedState.presentAssistantMessageHasPendingUpdates = false;
+}
