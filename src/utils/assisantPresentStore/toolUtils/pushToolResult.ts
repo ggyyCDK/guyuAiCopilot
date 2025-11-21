@@ -15,5 +15,6 @@ export const pushToolResult = (command: { block: ToolUse; content: string | stri
     } else {
         multiRoundSharedState.userMessageContent.push(...content)
     }
+    console.log(multiRoundSharedState.userMessageContent, 'see here')
     multiRoundSharedState.didAlreadyUseTool = true;
 }

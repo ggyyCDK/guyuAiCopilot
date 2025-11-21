@@ -1,4 +1,6 @@
 
+import * as vscode from 'vscode';
+import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
 export interface TextBlockParam {
     text: string;
 
@@ -26,6 +28,18 @@ export interface ToolResultBlockParam {
 export type UserContent = Array<TextBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
 
 const isUserMessage = (text: string) => text.includes('<feedback>') || text.includes('<answer>');
+
+/**
+ * 获取当前工作目录（工作区根路径）
+ * @returns 工作区根路径，如果没有工作区则返回空字符串
+ */
+const getCwd = (): string => {
+    const folders = vscode.workspace.workspaceFolders;
+    if (folders && folders.length > 0) {
+        return folders[0].uri.fsPath;
+    }
+    return '';
+}
 export const wrapUserMessage = async function (command: { userContent: UserContent, includeFileDetails?: boolean }): Promise<{
     parsedUserContentList: any,
     environmentDetails: any
@@ -73,8 +87,11 @@ export const wrapUserMessage = async function (command: { userContent: UserConte
         })
     )
 
+    const visibleFiles = getVisibleFiles();
+    const openTabs = getOpenTabs();
+
     //TODO 这里要构建环境信息给大模型
-    const environmentDetails = {};
+    const environmentDetails = getEnvironmentDetails(visibleFiles, openTabs) + ` Current Working Directory: ${getCwd()}`
     return {
         parsedUserContentList,
         environmentDetails

@@ -16,8 +16,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('');
-  const [apiUrl, setApiUrl] = useState<string>('');
+  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
+  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
   const { chatMessages, mergeMessages } = useIMStore()
 
   useEffect(() => {

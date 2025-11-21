@@ -44,7 +44,7 @@ export const presentAssistantMessage = async function () {
     multiRoundSharedState.presentAssistantMessageLocked = true;
     // 重置待处理更新标志
     multiRoundSharedState.presentAssistantMessageHasPendingUpdates = false;
-
+    // console.log('开始执行解析助手内容')
     // 检查当前流式内容索引是否超出消息内容数组长度
     if (multiRoundSharedState.currentStreamingContentIndex >= multiRoundSharedState.assistantMessageContent.length) {
         // 这种情况可能发生在最后一个内容块在流式传输完成前就已经完成的情况下
@@ -59,12 +59,11 @@ export const presentAssistantMessage = async function () {
         return;
         //throw new Error("No more content blocks to stream! This shouldn't happen...") // remove and just return after testing
     }
-
     // 深拷贝当前要处理的内容块，避免引用问题
     const block = cloneDeep(
         multiRoundSharedState.assistantMessageContent[multiRoundSharedState.currentStreamingContentIndex],
     );
-
+    console.log('开始执行解析助手内容的block了', block.type, block.content, block.params, block.partial)
     // 根据内容块类型进行不同的处理
     switch (block.type) {
         case 'text':
@@ -79,6 +78,7 @@ export const presentAssistantMessage = async function () {
 
         case 'tool_use':
             // 异步处理工具使用
+
             await parseToolUse(block);
             // console.log('tool_use:', block);
             break;

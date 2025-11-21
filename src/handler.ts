@@ -24,6 +24,14 @@ function getWorkspaceRootPath() {
   return '';
 }
 
+function getWorkspaceCwd() {
+  const folders = vscode.workspace.workspaceFolders;
+  if (folders && folders.length > 0) {
+    return folders[0].uri.fsPath;
+  }
+  return process.cwd();
+}
+
 /**
  * 流式对话处理
  * @param command ApiRequestParams
@@ -58,16 +66,16 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
 
   const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '')
   const requestUrl = `${requestBaseUrl}/api/v1/agent/run`
-  const currentFilePath = getWorkspaceRootPath()
-  console.log('当前打开的文件路径:', currentFilePath)
+  const currentCwd = getWorkspaceCwd()
+
   try {
     const response = await axios.post(requestUrl, {
       sessionId: conversationId,
       workerId,
       variableMaps: {
         llmConfig: {
-          cwdFormatted: '/',
-          model: 'claude_sonnet4',
+          cwdFormatted: currentCwd,
+          model: 'claude_sonnet4_5',
           ak,
           ApiUrl
         }
@@ -85,10 +93,17 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
     const stream = response.data as Readable
 
     await new Promise<void>((resolve, reject) => {
+      // const teardown = () => {
+      //   stream.removeAllListeners('data')
+      //   stream.removeAllListeners('end')
+      //   stream.removeAllListeners('close')
+      //   stream.removeAllListeners('error')
+      // }
+
       stream.on('data', (chunk: Buffer) => {
         const dataPayload = chunk.toString()
         const message = safetyParse(dataPayload) as ParseResult
-        console.log('out message is:', message, message?.eventType)
+        console.log('out message is:', message)
         switch (message?.eventType) {
           case EventType.Message: {
             const segment = message.content || ''
@@ -116,6 +131,20 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
           default:
             break
         }
+      })
+
+      const handleResolve = () => {
+        // teardown()
+        streamClosed = true
+        resolve()
+      }
+
+      stream.on('end', handleResolve)
+      stream.on('close', handleResolve)
+      stream.on('error', (err: Error) => {
+        // teardown()
+        streamClosed = true
+        reject(err)
       })
     })
   } catch (error) {

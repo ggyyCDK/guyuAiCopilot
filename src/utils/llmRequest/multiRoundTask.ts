@@ -6,6 +6,7 @@ export const StartMultiRoundTask = async function (command: multiRoundTaskParams
     //开启一次多轮对话
     await recursivelyMakeRequests({
         ...command,
-        question: [{ type: "text", text: command.question }]
+        question: [{ type: "text", text: command.question }],
+        includeFileDetails: true
     }, webview)
 }
