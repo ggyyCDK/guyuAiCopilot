@@ -93,12 +93,6 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
     const stream = response.data as Readable
 
     await new Promise<void>((resolve, reject) => {
-      // const teardown = () => {
-      //   stream.removeAllListeners('data')
-      //   stream.removeAllListeners('end')
-      //   stream.removeAllListeners('close')
-      //   stream.removeAllListeners('error')
-      // }
 
       stream.on('data', (chunk: Buffer) => {
         const dataPayload = chunk.toString()
@@ -133,19 +127,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
         }
       })
 
-      const handleResolve = () => {
-        // teardown()
-        streamClosed = true
-        resolve()
-      }
 
-      stream.on('end', handleResolve)
-      stream.on('close', handleResolve)
-      stream.on('error', (err: Error) => {
-        // teardown()
-        streamClosed = true
-        reject(err)
-      })
     })
   } catch (error) {
     handleIntervalMessage()

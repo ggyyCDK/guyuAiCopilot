@@ -66,11 +66,11 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         const serverMessageList = parseOriginAssistantMessage(assistantMessage)
         multiRoundSharedState.assistantMessageContent = serverMessageList
 
-
-        webviewView.webview.postMessage({
-            type: 'stream-data',
-            payload: { serverMessageList },
-        });
+       
+        // webviewView.webview.postMessage({
+        //     type: 'stream-data',
+        //     payload: { serverMessageList },
+        // });
         // console.log('serverMessageList is :', serverMessageList)
 
         if (multiRoundSharedState.assistantMessageContent.length > previousLength) {
