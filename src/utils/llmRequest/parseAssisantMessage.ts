@@ -1,7 +1,7 @@
 import { AssistantMessageContent, TextContent, toolUseNames, ToolUseName, toolParamNames, ToolParamName, ToolUse } from '@/type/tools/msgToolsParse'
 
-export function parseOriginAssistantMessage(assistantMessage: string): AssistantMessageContent[] {
-
+export function parseOriginAssistantMessage(command: { assistantMessage: string, requestId: string }): AssistantMessageContent[] {
+    const { assistantMessage, requestId } = command
     const contentBlocks: AssistantMessageContent[] = []
     let currentTextContent: TextContent | undefined = undefined
     let currentTextContentStartIndex = 0
@@ -229,6 +229,10 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
             contentBlocks.push(currentTextContent)
         }
     }
+    //为每条信息添加唯一id
+    contentBlocks.forEach((block, index) => {
+        block.id = requestId + '_' + index
+    })
     console.log('contentBlocks is:', contentBlocks)
     return contentBlocks
 }

@@ -6,7 +6,13 @@ import { multiRoundTaskParams } from '@/type/imType/aiRequest'
 import { multiRoundSharedState } from '../assisantPresentStore/multiRoundSharedState';
 import { presentAssistantMessage, resetMultiRoundSharedState } from '../assisantPresentStore/presentAssistantMessage';
 import * as vscode from 'vscode'
+import { uniqueId } from 'lodash'
 import pWaitFor from 'p-wait-for';
+
+export const nextId = () => {
+    return `${new Date().getTime()}_${uniqueId()}`
+}
+
 export const recursivelyMakeRequests = async function (command: multiRoundTaskParams, webviewView: vscode.WebviewView) {
 
     const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails = false } = command;
@@ -42,7 +48,8 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
 
     // 每次新的递归重置状态
     resetMultiRoundSharedState()
-
+    //生成消息id，一个流式输出会经过多次parseOriginAssistantMessage去格式化，保证多次输出消息id是一致的
+    const requestId = nextId()
     const stream = await attemptApiRequestTypeWriter({
         question: parsedUserContentList,
         workerId,
@@ -51,19 +58,23 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         baseUrl,
     });
     let assistantMessage = '';
+
     for await (const chunk of stream) {
         assistantMessage += chunk;
         console.log('assistantMessage is', assistantMessage)
         const previousLength = multiRoundSharedState.assistantMessageContent.length;
-        const serverMessageList = parseOriginAssistantMessage(assistantMessage)
+        const serverMessageList = parseOriginAssistantMessage({
+            assistantMessage,
+            requestId
+        })
         multiRoundSharedState.assistantMessageContent = serverMessageList
 
 
-        // webviewView.webview.postMessage({
-        //     type: 'stream-data',
-        //     payload: { serverMessageList },
-        // });
-        // console.log('serverMessageList is :', serverMessageList)
+        webviewView.webview.postMessage({
+            type: 'stream-data',
+            payload: { serverMessageList },
+        });
+        console.log('serverMessageList is :', serverMessageList)
 
         if (multiRoundSharedState.assistantMessageContent.length > previousLength) {
             multiRoundSharedState.userMessageContentReady = false;

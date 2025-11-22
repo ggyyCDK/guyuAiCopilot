@@ -10,6 +10,8 @@ export interface Message {
   payload: Record<string, any>;
 }
 
+
+
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
 
@@ -31,12 +33,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (options: Message) => {
       const { type, payload } = options;
-      const { mergeMessages } = useIMStore.getState()
       switch (type) {
         case 'stream-chat': {
           //发送之后，收取消息，发起多轮对话
           StartMultiRoundTask({
-            ...payload as multiRoundTaskParams
+            ...payload as multiRoundTaskParams,
           }, webviewView)
           break;
         }
