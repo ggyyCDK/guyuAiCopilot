@@ -1,0 +1,61 @@
+.container {
+    .header {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+  
+      .title {
+        font-size: 14px;
+        color: #fff;
+        font-weight: bold;
+      }
+  
+      .titleIcon {
+        color: #fff;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+      }
+    }
+  
+    .tag {
+      background-color: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(5, 5, 5, 0.06);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
+  
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+  
+  .iconWaiting {
+    animation: spin 2s linear infinite;
+  }
+  
+  .iconComplete {
+    color: #54c41c;
+  }
+  
+  .attemptCompletionTitleIcon,
+  .attemptCompletionTitle,
+  .attemptCompletionContent {
+    color: #54c41c !important;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .pre {
+    text-wrap: wrap;
+  }

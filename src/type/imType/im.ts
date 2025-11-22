@@ -21,7 +21,7 @@ export enum MessageType {
     Notice = 'Notice'
 }
 export interface ChatMessage<T = any> {
-    conversationId: string;
+    conversationId?: string;
     msgId: string;
     sender: Target;
     sendTime: number;

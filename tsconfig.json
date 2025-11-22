@@ -33,6 +33,7 @@
     }
   },
   "include": [
-    "src"
+    "src",
+    "css-modules.d.ts"
   ]
 }

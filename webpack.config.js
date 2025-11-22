@@ -47,10 +47,43 @@ const configForWebview = merge(commonConfig, {
         exclude: /node_modules/,
         loader: 'babel-loader',
       },
+      // CSS Modules - .module.css
       {
-        test: /\.(css)$/,
+        test: /\.module\.scss$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+              importLoaders: 1, // ✅ 重要：告诉 css-loader 有 1 个 loader 在它之前
+            },
+          },
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.scss$/,
+        exclude: /\.module\.scss$/, // ✅ 排除 module.scss
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+            },
+          },
+          'sass-loader',
+        ],
+      },
+      // 普通 CSS 文件
+      {
+        test: /\.css$/,
+        exclude: /\.module\.css$/,
         use: ['style-loader', 'css-loader'],
-        exclude: '/node_modules/',
+        exclude: /node_modules/,
       },
     ],
   },

@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import ReactDom from 'react-dom';
 import { useIMStore } from '@/store/imStore/createStore'
+import { ChatMessage, MessageStatus, MessageType } from '@/type/imType/im'
 import { transformServerMessage } from '@/utils/llmRequest/transformServerMessage'
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
+import { uniqueId } from 'lodash'
+import MessageContent from './components/messageContent'
 import './index.css';
 
 interface ISidebarProps { }
@@ -10,22 +15,28 @@ interface ISidebarProps { }
 const vscode = (window as any).acquireVsCodeApi();
 
 const Sidebar: React.FC<ISidebarProps> = () => {
-  const [streamingText, setStreamingText] = useState<string>('');
-  const [displayedText, setDisplayedText] = useState<string>('');
-  const [targetText, setTargetText] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
-  const { chatMessages, mergeMessages } = useIMStore()
-
+  const { chatMessages, chatLoading, mergeMessages, getLastMessage } = useIMStore()
+  const { containerRef } = useAutoScroll([chatMessages])
+  const lastMessage = getLastMessage()
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
     return () => {
       window.removeEventListener('message', providerMessageHandler);
     };
   }, []);
+
+  useEffect(() => {
+    if (!lastMessage) {
+      return
+    }
+    if (ChatMessageUtils.isAttemptCompletionMessage(lastMessage)) {
+      useIMStore.setState({ chatLoading: false })
+    }
+  }, [lastMessage])
 
   /**
    * 处理 provider 发送过来的请求
@@ -35,16 +46,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const providerMessageHandler = function (event: any) {
     const data = event.data;
     const { type, payload } = data;
-    switch (type) {
-      case 'stream-start':
-        console.log('Stream started');
-        // setStreamingText('');
-        // setDisplayedText('');
-        // setTargetText('');
-        // setError('');
-        setLoading(true);
-        break;
 
+    switch (type) {
       case 'stream-data':
         const { serverMessageList } = payload
         mergeMessages(serverMessageList.map(transformServerMessage))
@@ -55,20 +58,31 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       case 'stream-error':
         console.error('Stream error:', payload.error);
         setError(payload.error);
-        setLoading(false);
         break;
     }
   };
-
-  const handleReset = () => {
-    setStreamingText('');
-    setDisplayedText('');
-    setTargetText('');
-    setError('');
-  };
-
+  const nextId = () => {
+    return `${new Date().getTime()}_${uniqueId()}`
+  }
   const handleSend = () => {
-    if (!question.trim() || loading) return;
+    if (!question.trim()) return;
+
+    useIMStore.setState({
+      chatLoading: true,
+    })
+    const userMsgId = nextId()
+    const userMessage: ChatMessage = {
+      msgId: userMsgId,
+      sender: {
+        targetId: 'user'
+      },
+      status: MessageStatus.Complete,
+      sendTime: new Date().getTime(),
+      type: MessageType.Text,
+      content: question,
+      ext: {}
+    }
+    mergeMessages([userMessage])
     vscode.postMessage({
       type: 'stream-chat',
       payload: {
@@ -94,17 +108,26 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       handleSend();
     }
   };
+
+  const renderLLMMessage = (message: ChatMessage, index: number) => {
+    // const isUserMessage = ChatMessageUtils.isUserMessage(message);
+
+    return <div className='messageWrapper'>
+      <MessageContent message={message}></MessageContent>
+    </div>
+  }
+
   console.log(chatMessages, 'chatMessages666')
   return (
     <>
       <div className='aiLayout'>
         <div className="app-header">
-          <div className="app-title">✨ SchooberAi 助手111</div>
+          <div className="app-title">✨ SchooberAi 助手</div>
           <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
         </div>
 
         {/* 输出内容区域 */}
-        <div className="content-area">
+        <div className="content-area" ref={containerRef}>
           {error && (
             <div className="error-message">
               错误: {error}
@@ -112,32 +135,33 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           )}
 
           {/* 打字机效果的流式文本 */}
-          {displayedText && (
-            <div className="stream-text-container">
-              <div className="stream-text-content">
-                {displayedText}
-                {loading && displayedText.length < targetText.length && (
-                  <span className="typing-cursor">|</span>
-                )}
+
+          {
+            chatMessages?.length > 0 && <div className="stream-text-container" >
+              <div className="stream-text-content" >
+                {chatMessages.map(renderLLMMessage)}
               </div>
+              {
+                chatLoading && <div className="fade">generating...</div>
+              }
             </div>
-          )}
+          }
+
+
         </div>
 
         <div className="input-container">
           <div className="config-inputs">
             <Input
-              placeholder="请输入访问密钥 (AK)11"
+              placeholder="请输入访问密钥 (AK)"
               value={ak}
               onChange={(e) => setAk(e.target.value)}
-              disabled={loading}
               className="config-input"
             />
             <Input
               placeholder="请输入 API 服务地址"
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
-              disabled={loading}
               className="config-input"
             />
           </div>
@@ -148,7 +172,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
             autoSize={{ minRows: 3, maxRows: 6 }}
-            disabled={loading}
+            disabled={chatLoading}
             className="question-input"
           />
         </div>
