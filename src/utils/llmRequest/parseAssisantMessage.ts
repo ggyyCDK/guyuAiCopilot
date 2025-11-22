@@ -15,43 +15,43 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
         const char = assistantMessage[i]
         accumulator += char
 
-        // --- State: Parsing a Tool Parameter ---
-        // there should not be a param without a tool use
+        // --- 状态：解析工具参数 ---
+        // 不应该存在没有工具使用的参数
         if (currentToolUse && currentParamName) {
             const currentParamValue = accumulator.slice(currentParamValueStartIndex)
             const paramClosingTag = `</${currentParamName}>`
             if (currentParamValue.endsWith(paramClosingTag)) {
-                // End of param value found
+                // 找到参数值的结束标签
                 currentToolUse.params[currentParamName] = currentParamValue.slice(0, -paramClosingTag.length).trim()
-                currentParamName = undefined // Go back to parsing tool content or looking for next param
-                continue // Move to next character
+                currentParamName = undefined // 返回解析工具内容或查找下一个参数
+                continue // 移动到下一个字符
             } else {
-                // Partial param value is accumulating
-                continue // Move to next character
+                // 部分参数值正在累积
+                continue // 移动到下一个字符
             }
         }
 
-        // --- State: Parsing a Tool Use (but not a specific parameter) ---
-        // no currentParamName
+        // --- 状态：解析工具使用（但不是特定参数）---
+        // 没有 currentParamName
         if (currentToolUse) {
             const currentToolValue = accumulator.slice(currentToolUseStartIndex)
             const toolUseClosingTag = `</${currentToolUse.name}>`
 
             if (currentToolValue.endsWith(toolUseClosingTag)) {
-                // End of a tool use found
+                // 找到工具使用的结束标签
                 currentToolUse.partial = false
                 contentBlocks.push(currentToolUse)
-                currentToolUse = undefined // Go back to parsing text or looking for next tool
-                // Reset text start index in case text follows immediately
+                currentToolUse = undefined // 返回解析文本或查找下一个工具
+                // 重置文本起始索引，以防文本紧随其后
                 currentTextContentStartIndex = i + 1
-                continue // Move to next character
+                continue // 移动到下一个字符
             } else {
-                // Check if starting a new parameter within the current tool use
+                // 检查是否在当前工具使用中开始新参数
                 const possibleParamOpeningTags = toolParamNames.map((name) => `<${name}>`)
                 let foundParamStart = false
                 for (const paramOpeningTag of possibleParamOpeningTags) {
                     if (accumulator.endsWith(paramOpeningTag)) {
-                        // Start of a new parameter found
+                        // 找到新参数的开始标签
                         currentParamName = paramOpeningTag.slice(1, -1) as ToolParamName
                         currentParamValueStartIndex = accumulator.length
                         foundParamStart = true
@@ -59,12 +59,12 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
                     }
                 }
                 if (foundParamStart) {
-                    continue // Move to next character
+                    continue // 移动到下一个字符
                 }
 
-                // Special case for write_to_file/new_rule content param allowing nested tags
-                // Check if a </content> tag appears, potentially indicating the end of the content param
-                // even if the main tool closing tag hasn't been seen yet.
+                // write_to_file/new_rule 内容参数的特殊情况，允许嵌套标签
+                // 检查是否出现 </content> 标签，可能表示内容参数的结束
+                // 即使尚未看到主工具关闭标签
                 const contentParamName: ToolParamName = "content"
                 if (
                     (currentToolUse.name === "write_to_file" || currentToolUse.name === "new_rule") &&
@@ -74,43 +74,42 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
                     const contentStartTag = `<${contentParamName}>`
                     const contentEndTag = `</${contentParamName}>`
                     const contentStartIndex = toolContent.indexOf(contentStartTag) + contentStartTag.length
-                    // Use lastIndexOf to handle cases where </content> might appear within the content itself
+                    // 使用 lastIndexOf 处理 </content> 可能出现在内容本身中的情况
                     const contentEndIndex = toolContent.lastIndexOf(contentEndTag)
 
-                    // Ensure we found valid start/end tags and end is after start
+                    // 确保找到有效的开始/结束标签，并且结束标签在开始标签之后
                     if (
                         contentStartIndex !== -1 &&
                         contentEndIndex !== -1 &&
-                        contentEndIndex > contentStartIndex - contentStartTag.length // Ensure end tag is after start tag begins
+                        contentEndIndex > contentStartIndex - contentStartTag.length // 确保结束标签在开始标签之后
                     ) {
-                        // Check if this content param was already being parsed. If so, update it.
-                        // If not, and we just found the closing tag, assign it.
-                        // This handles cases where the </content> detection might fire before
-                        // the <content> tag detection logic, or if the content is very short.
+                        // 检查此内容参数是否已被解析。如果是，则更新它。
+                        // 如果不是，并且我们刚刚找到关闭标签，则分配它。
+                        // 这处理了 </content> 检测可能在 <content> 标签检测逻辑之前触发的情况，或者内容非常短的情况。
                         if (currentParamName === contentParamName) {
-                            // Already parsing content, now we found the end tag
+                            // 已经在解析内容，现在找到了结束标签
                             currentToolUse.params[contentParamName] = toolContent.slice(contentStartIndex, contentEndIndex).trim()
-                            currentParamName = undefined // Finished with this param
+                            currentParamName = undefined // 完成此参数
                         } else if (currentParamName === undefined) {
-                            // Not parsing a param, but found </content>. Assume it closes the content block.
+                            // 未解析参数，但找到了 </content>。假设它关闭了内容块。
                             currentToolUse.params[contentParamName] = toolContent.slice(contentStartIndex, contentEndIndex).trim()
-                            // We stay in the "parsing tool use" state, looking for more params or the tool end tag.
+                            // 我们保持在"解析工具使用"状态，寻找更多参数或工具结束标签。
                         }
                     }
                 }
 
-                // If none of the above, partial tool value is accumulating
-                continue // Move to next character
+                // 如果以上都不是，部分工具值正在累积
+                continue // 移动到下一个字符
             }
         }
 
-        // --- State: Parsing Text (or looking for start of a tool use) ---
-        // no currentToolUse
+        // --- 状态：解析文本（或寻找工具使用的开始）---
+        // 没有 currentToolUse
         let didStartToolUse = false
         const possibleToolUseOpeningTags = toolUseNames.map((name) => `<${name}>`)
         for (const toolUseOpeningTag of possibleToolUseOpeningTags) {
             if (accumulator.endsWith(toolUseOpeningTag)) {
-                // Start of a new tool use found
+                // 找到新工具使用的开始标签
                 const toolName = toolUseOpeningTag.slice(1, -1) as ToolUseName
                 currentToolUse = {
                     id: '',
@@ -122,19 +121,19 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
                 }
                 currentToolUseStartIndex = accumulator.length
 
-                // This also indicates the end of the current text content block (if any)
+                // 这也表示当前文本内容块的结束（如果有）
                 if (currentTextContent) {
                     currentTextContent.partial = false
-                    // Extract text content, removing the part that formed the tool opening tag
+                    // 提取文本内容，删除形成工具开始标签的部分
                     const textEndIndex = accumulator.length - toolUseOpeningTag.length
                     currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex, textEndIndex).trim()
-                    // Only add if there's actual content
+                    // 仅在有实际内容时添加
                     if (currentTextContent.content.text.length > 0) {
                         contentBlocks.push(currentTextContent)
                     }
                     currentTextContent = undefined
                 } else {
-                    // Check if there was text before this tool use started
+                    // 检查在此工具使用开始之前是否有文本
                     const textEndIndex = accumulator.length - toolUseOpeningTag.length
                     const potentialText = accumulator.slice(currentTextContentStartIndex, textEndIndex).trim()
                     if (potentialText.length > 0) {
@@ -145,51 +144,51 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
                             content: {
                                 text: potentialText
                             },
-                            partial: false, // Ended because tool use started
+                            partial: false, // 因为工具使用开始而结束
                         })
                     }
                 }
 
                 didStartToolUse = true
-                break // Found tool start, stop checking for others
+                break // 找到工具开始，停止检查其他
             }
         }
 
         if (!didStartToolUse) {
-            // No tool use started, so it must be text content accumulating
-            // (or continuing after a closed tool use)
+            // 没有工具使用开始，所以必须是文本内容正在累积
+            // （或在关闭的工具使用后继续）
             if (currentTextContent === undefined) {
-                // Start of a new text block
-                currentTextContentStartIndex = i - (accumulator.length - currentTextContentStartIndex - 1) // Adjust start index based on how much we've accumulated since the last block ended or the beginning
-                // If accumulator starts from 0, start index is i
+                // 新文本块的开始
+                currentTextContentStartIndex = i - (accumulator.length - currentTextContentStartIndex - 1) // 根据自上一个块结束或开始以来累积的量调整起始索引
+                // 如果累加器从 0 开始，起始索引为 i
                 if (contentBlocks.length === 0 && currentToolUse === undefined) {
                     currentTextContentStartIndex = accumulator.length - 1 // i
                 } else {
-                    // Re-calculate based on the actual start of the current text segment
-                    // Find the end of the last block
+                    // 根据当前文本段的实际开始重新计算
+                    // 找到最后一个块的结束位置
                     let lastBlockEndIndex = 0
                     if (contentBlocks.length > 0) {
                         const lastBlock = contentBlocks[contentBlocks.length - 1]
-                        // Approximation: find where the accumulator matches the end of the message string representation of the last block. This is complex.
-                        // Simpler: Assume text starts right after the last block ended implicitly at index i.
-                        lastBlockEndIndex = i // Where the loop *was* when the last block finished processing
-                        // Need a more robust way to track the end index of the *raw string* corresponding to the last block.
-                        // Let's stick to the accumulator slice approach for simplicity in this version.
-                        // The start index should be where the current *unmatched* text began.
+                        // 近似：找到累加器与最后一个块的消息字符串表示的结尾匹配的位置。这很复杂。
+                        // 更简单：假设文本在最后一个块在索引 i 处隐式结束后立即开始。
+                        lastBlockEndIndex = i // 最后一个块完成处理时循环所在的位置
+                        // 需要一种更可靠的方法来跟踪与最后一个块对应的*原始字符串*的结束索引。
+                        // 为了简单起见，让我们在此版本中坚持使用累加器切片方法。
+                        // 起始索引应该是当前*未匹配*文本开始的位置。
                         let lastProcessedIndex = -1
                         if (contentBlocks.length > 0) {
-                            // This requires knowing the raw string length of the previous block, which V1 doesn't explicitly track easily.
-                            // We'll approximate based on the current accumulator and start index logic.
-                            // The issue arises if a tool tag was just closed. accumulator contains everything up to i.
-                            // lastBlockEndIndex should point to the character *after* the closing tag of the last block.
+                            // 这需要知道前一个块的原始字符串长度，V1 不容易明确跟踪。
+                            // 我们将根据当前累加器和起始索引逻辑进行近似。
+                            // 如果刚刚关闭了工具标签，就会出现问题。累加器包含直到 i 的所有内容。
+                            // lastBlockEndIndex 应该指向最后一个块的关闭标签*之后*的字符。
                         }
-                        // Reset start index to the beginning of the *current* potential text block
-                        currentTextContentStartIndex = accumulator.length - 1 // Start accumulating from the current character `i`
+                        // 将起始索引重置为*当前*潜在文本块的开头
+                        currentTextContentStartIndex = accumulator.length - 1 // 从当前字符 `i` 开始累积
                     }
 
-                    // If we just closed a tool, text starts *after* its closing tag
-                    // The logic needs refinement here for accurate start index after a tool closure.
-                    // Let's assume for now the start index logic inside the loop handles it via slicing.
+                    // 如果我们刚刚关闭了一个工具，文本在其关闭标签*之后*开始
+                    // 这里的逻辑需要改进，以便在工具关闭后获得准确的起始索引。
+                    // 现在让我们假设循环内的起始索引逻辑通过切片来处理它。
                 }
 
                 currentTextContent = {
@@ -198,34 +197,34 @@ export function parseOriginAssistantMessage(assistantMessage: string): Assistant
                     type: "text",
                     content: {
                         text: ''
-                    }, // Content will be filled by slicing accumulator
+                    }, // 内容将通过切片累加器填充
                     partial: true,
                 }
             }
-            // Update text content based on the accumulator from its start index
-            currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex).trimStart() // Trim start to avoid leading space if text follows tool
+            // 根据累加器从其起始索引更新文本内容
+            currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex).trimStart() // 修剪开头以避免文本跟随工具时的前导空格
         }
-    } // End of loop
+    } // 循环结束
 
-    // --- Finalization after loop ---
+    // --- 循环后的最终处理 ---
 
-    // If a tool use was open at the end
+    // 如果在结束时工具使用处于打开状态
     if (currentToolUse) {
-        // If a parameter was open within that tool use
+        // 如果该工具使用中有参数处于打开状态
         if (currentParamName) {
-            // The remaining accumulator content belongs to this partial parameter
+            // 剩余的累加器内容属于此部分参数
             currentToolUse.params[currentParamName] = accumulator.slice(currentParamValueStartIndex).trim()
         }
-        // Add the potentially partial tool use block
+        // 添加可能部分的工具使用块
         contentBlocks.push(currentToolUse)
     }
-    // If text content was being accumulated at the end
-    // Note: Only one of currentToolUse or currentTextContent can be defined here,
-    // as starting a tool use finalizes the preceding text block.
+    // 如果在结束时正在累积文本内容
+    // 注意：这里只能定义 currentToolUse 或 currentTextContent 之一，
+    // 因为开始工具使用会完成前面的文本块。
     else if (currentTextContent) {
-        // Update content one last time
+        // 最后一次更新内容
         currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex).trim()
-        // Add the potentially partial text block only if it contains content
+        // 仅在包含内容时添加可能部分的文本块
         if (currentTextContent.content.text.length > 0) {
             contentBlocks.push(currentTextContent)
         }

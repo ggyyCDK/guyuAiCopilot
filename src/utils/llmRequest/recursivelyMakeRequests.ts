@@ -27,29 +27,21 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
     }
 
     console.log('question is', question)
-    //回复的消息，可能是纯文本，也可能是带有工具格式的回复，需要解析
+    // 回复的消息，可能是纯文本，也可能是带有工具格式的回复，需要解析
     // 将字符串 question 转换为 UserContent 格式
 
     const { parsedUserContentList, environmentDetails } = await wrapUserMessage({
         userContent: question as any,
         includeFileDetails
     });
-    //如果传入了详情，要加入环境信息给大模型
+    // 如果传入了详情，要加入环境信息给大模型
     if (includeFileDetails) {
         parsedUserContentList.push({ type: 'text', text: environmentDetails })
     }
 
 
-    //每次新的递归重置状态
-    // resetMultiRoundSharedState()
-    multiRoundSharedState.currentStreamingContentIndex = 0;
-    multiRoundSharedState.assistantMessageContent = [];
-    multiRoundSharedState.didCompleteReadingStream = false;
-    multiRoundSharedState.userMessageContentReady = false;
-    multiRoundSharedState.userMessageContent = [];
-    multiRoundSharedState.didAlreadyUseTool = false;
-    multiRoundSharedState.presentAssistantMessageLocked = false;
-    multiRoundSharedState.presentAssistantMessageHasPendingUpdates = false;
+    // 每次新的递归重置状态
+    resetMultiRoundSharedState()
 
     const stream = await attemptApiRequestTypeWriter({
         question: parsedUserContentList,
@@ -76,41 +68,41 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         if (multiRoundSharedState.assistantMessageContent.length > previousLength) {
             multiRoundSharedState.userMessageContentReady = false;
         }
-        //助手消息处理
+        // 助手消息处理
         presentAssistantMessage();
         console.log('循环内助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
 
     }
     console.log('助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
     multiRoundSharedState.didCompleteReadingStream = true;
-    // set any blocks to be complete to allow presentAssistantMessage to finish and set userMessageContentReady to true
-    // (could be a text block that had no subsequent tool uses, or a text block at the very end, or an invalid tool use, etc. whatever the case, presentAssistantMessage relies on these blocks either to be completed or the user to reject a block in order to proceed and eventually set userMessageContentReady to true)
+    // 将所有块设置为完成状态，以允许 presentAssistantMessage 完成并将 userMessageContentReady 设置为 true
+    // （可能是没有后续工具使用的文本块，或最后的文本块，或无效的工具使用等。无论哪种情况，presentAssistantMessage 都依赖于这些块要么完成，要么用户拒绝某个块，以便继续并最终将 userMessageContentReady 设置为 true）
     const partialBlocks = multiRoundSharedState.assistantMessageContent.filter((block) => block.partial)
     partialBlocks.forEach((block) => {
         block.partial = false
     })
-    // this.assistantMessageContent.forEach((e) => (e.partial = false)) // can't just do this bc a tool could be in the middle of executing ()
+    // this.assistantMessageContent.forEach((e) => (e.partial = false)) // 不能直接这样做，因为工具可能正在执行中
     if (partialBlocks.length > 0) {
-        presentAssistantMessage() // if there is content to update then it will complete and update this.userMessageContentReady to true, which we pwaitfor before making the next request. all this is really doing is presenting the last partial message that we just set to complete
+        presentAssistantMessage() // 如果有内容需要更新，它将完成并将 this.userMessageContentReady 更新为 true，我们在发出下一个请求之前会等待它。这实际上只是呈现我们刚刚设置为完成的最后一条部分消息
     }
 
     let didEndLoop = false
     if (assistantMessage.length > 0) {
-        // NOTE: this comment is here for future reference - this was a workaround for userMessageContent not getting set to true. It was due to it not recursively calling for partial blocks when didRejectTool, so it would get stuck waiting for a partial block to complete before it could continue.
-        // in case the content blocks finished
-        // it may be the api stream finished after the last parsed content block was executed, so  we are able to detect out of bounds and set userMessageContentReady to true (note you should not call presentAssistantMessage since if the last block is completed it will be presented again)
-        // const completeBlocks = this.assistantMessageContent.filter((block) => !block.partial) // if there are any partial blocks after the stream ended we can consider them invalid
+        // 注意：此注释供将来参考 - 这是 userMessageContent 未设置为 true 的解决方法。这是因为在 didRejectTool 时它没有递归调用部分块，所以它会卡在等待部分块完成后才能继续。
+        // 以防内容块完成
+        // API 流可能在最后一个解析的内容块执行后完成，因此我们能够检测越界并将 userMessageContentReady 设置为 true（注意不应调用 presentAssistantMessage，因为如果最后一个块已完成，它将再次呈现）
+        // const completeBlocks = this.assistantMessageContent.filter((block) => !block.partial) // 如果流结束后有任何部分块，我们可以认为它们无效
         // if (this.currentStreamingContentIndex >= completeBlocks.length) {
         // 	this.userMessageContentReady = true
         // }
 
         await pWaitFor(() => multiRoundSharedState.userMessageContentReady)
 
-        // if the model did not tool use, then we need to tell it to either use a tool or attempt_completion
+        // 如果模型没有使用工具，那么我们需要告诉它使用工具或尝试完成，因为最终回答肯定要以attempt_completion工具完成
         const didToolUse = multiRoundSharedState.assistantMessageContent.some((block) => block.type === "tool_use")
 
         if (!didToolUse) {
-            // normal request where tool use is required
+            // 需要使用工具的正常请求
             multiRoundSharedState.userMessageContent.push({
                 type: "text",
                 text: formatResponse.noToolsUsed(false),
