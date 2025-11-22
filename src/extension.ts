@@ -9,7 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('vs-sidebar-view', sidebarPanel)
   );
+  console.log('activate window is', vscode.window)
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

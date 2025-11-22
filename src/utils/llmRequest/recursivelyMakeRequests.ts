@@ -66,7 +66,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         const serverMessageList = parseOriginAssistantMessage(assistantMessage)
         multiRoundSharedState.assistantMessageContent = serverMessageList
 
-       
+
         // webviewView.webview.postMessage({
         //     type: 'stream-data',
         //     payload: { serverMessageList },
@@ -78,6 +78,8 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         }
         //助手消息处理
         presentAssistantMessage();
+        console.log('循环内助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
+
     }
     console.log('助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
     multiRoundSharedState.didCompleteReadingStream = true;
@@ -111,7 +113,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
             // normal request where tool use is required
             multiRoundSharedState.userMessageContent.push({
                 type: "text",
-                text: formatResponse.noToolsUsed(true),
+                text: formatResponse.noToolsUsed(false),
             })
         }
         const recDidEndLoop = await recursivelyMakeRequests({ ...command, question: multiRoundSharedState.userMessageContent }, webviewView)
