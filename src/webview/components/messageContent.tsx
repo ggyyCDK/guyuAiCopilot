@@ -3,6 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import TextMessageContent from './TextMessageContent'
 import ToolAttempCompletionContent from './ToolAttempCompletionContent';
 import ToolReadFileContent from './ToolReadFileContent';
+import ToolWriteFileContent from './ToolWriteFileContent';
 import ToolListFilesContent from './ToolListFilesContent';
 
 interface MessageContentProps {
@@ -20,6 +21,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
             switch (toolName) {
                 case 'read_file':
                     return <ToolReadFileContent message={message}></ToolReadFileContent>
+                case 'write_to_file':
+                    return <ToolWriteFileContent message={message}></ToolWriteFileContent>
                 case 'list_files':
                     return <ToolListFilesContent message={message}></ToolListFilesContent>
                 case 'attempt_completion':
