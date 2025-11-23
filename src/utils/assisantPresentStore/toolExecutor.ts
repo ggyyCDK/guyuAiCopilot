@@ -4,6 +4,7 @@ import { formatResponse } from "@/helper/responsePrompt/responseFormatter";
 import { pushToolResult } from "@/utils/assisantPresentStore/toolUtils/pushToolResult";
 import { getToolDescription } from "@/utils/assisantPresentStore/toolUtils/getToolDescription";
 import { readFile } from "@/helper/tools/readFiles";
+import { listFiles } from "@/helper/tools/listFiles";
 import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -45,6 +46,19 @@ export const parseToolUse = async (block: ToolUse) => {
                 toolUseCommand: block,
             })
             console.log('读完啦', toolResult)
+            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
+            break
+        }
+        case 'list_files': {
+            if (block.partial) {
+                console.log('list_files is partial')
+                break
+            }
+            console.log('执行到列文件啦！', block)
+            const { toolResult } = await listFiles({
+                toolUseCommand: block,
+            })
+            console.log('列完啦', toolResult)
             pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
             break
         }
