@@ -130,15 +130,15 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
 
     })
   } catch (error) {
-    handleIntervalMessage()
-    onError?.(error)
+    // handleIntervalMessage()
+    // onError?.(error)
   } finally {
     throttleOnMessage.cancel()
     if (!streamClosed) {
-      handleIntervalMessage()
+      // handleIntervalMessage()
     }
     if (!isCompleted) {
-      onComplete?.({ segmentContent: '', content })
+      // onComplete?.({ segmentContent: '', content })
     }
   }
 };

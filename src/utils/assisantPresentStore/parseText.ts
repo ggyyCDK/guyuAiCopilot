@@ -19,7 +19,7 @@ export const parseText = (block: TextContent): string => {
         const lastOpenBracketIndex = content.lastIndexOf("<")
         if (lastOpenBracketIndex !== -1) {
             const possibleTag = content.slice(lastOpenBracketIndex)
-            // Check if there's a '>' after the last '<' (i.e., if the tag is complete) (complete thinking and tool tags will have been removed by now)
+            // 检查最后一个 '<' 之后是否有 '>'（即标签是否完整）
             const hasCloseBracket = possibleTag.includes(">")
             if (!hasCloseBracket) {
                 // 提取潜在的标签名称，区分开标签 / 闭标签
@@ -29,8 +29,8 @@ export const parseText = (block: TextContent): string => {
                 } else {
                     tagContent = possibleTag.slice(1).trim()
                 }
-                // 仅在疑似合法标签名时才进行裁剪（字母和下划线）
-                const isLikelyTagName = /^[a-zA-Z_]+$/.test(tagContent)
+                // 仅在疑似合法标签名时才进行裁剪（字母、数字、下划线和连字符）
+                const isLikelyTagName = /^[a-zA-Z_][\w-]*$/.test(tagContent)
                 // 若只是单独的 "<" 或 "</" 也直接清理，避免渲染异常字符
                 const isOpeningOrClosing = possibleTag === "<" || possibleTag === "</"
                 // 当检测到未完成标签时，截断到标签起始位置

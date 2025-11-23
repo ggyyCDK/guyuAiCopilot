@@ -10,7 +10,6 @@ export function parseOriginAssistantMessage(command: { assistantMessage: string,
     let currentParamName: ToolParamName | undefined = undefined
     let currentParamValueStartIndex = 0
     let accumulator = ""
-    console.log('parseOriginAssistantMessage is:', assistantMessage)
     for (let i = 0; i < assistantMessage.length; i++) {
         const char = assistantMessage[i]
         accumulator += char
