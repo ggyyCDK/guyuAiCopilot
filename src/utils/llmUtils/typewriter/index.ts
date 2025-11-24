@@ -16,7 +16,7 @@ export const typewriter = async (command: ITypewriterOptions) => {
         eager({ eagerInterval: 1, flushInterval: 0 }),
         toWord({ locale: 'en' }),
         //每50ms输出一个字符
-        linear(50)]);
+        linear(10)]);
     try {
         for await (const item of pipeline) {
             onMessage?.(item);
