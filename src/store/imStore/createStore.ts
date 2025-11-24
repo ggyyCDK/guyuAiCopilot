@@ -27,7 +27,7 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
                     messagesMap.set(newMsg.msgId, newMsg)
                 }
             })
-            console.log('Array.from(messagesMap.values())', Array.from(messagesMap.values()))
+            // console.log('Array.from(messagesMap.values())', Array.from(messagesMap.values()))
             return { chatMessages: Array.from(messagesMap.values()) }
         })
 

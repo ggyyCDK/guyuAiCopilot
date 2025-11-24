@@ -61,7 +61,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
 
     for await (const chunk of stream) {
         assistantMessage += chunk;
-        console.log('assistantMessage is', assistantMessage)
+        // console.log('assistantMessage is', assistantMessage)
         const previousLength = multiRoundSharedState.assistantMessageContent.length;
         const serverMessageList = parseOriginAssistantMessage({
             assistantMessage,
@@ -74,14 +74,14 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
             type: 'stream-data',
             payload: { serverMessageList },
         });
-        console.log('serverMessageList is :', serverMessageList)
+        // console.log('serverMessageList is :', serverMessageList)
 
         if (multiRoundSharedState.assistantMessageContent.length > previousLength) {
             multiRoundSharedState.userMessageContentReady = false;
         }
         // 助手消息处理
         presentAssistantMessage();
-        console.log('循环内助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
+        // console.log('循环内助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
 
     }
     console.log('助手消息处理完毕', multiRoundSharedState.assistantMessageContent)

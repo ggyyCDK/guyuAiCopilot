@@ -4,6 +4,7 @@ import { TextEncoder } from 'util';
 import { IToolExecutor } from '@/type/tools/msgToolsParse';
 
 const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder('utf-8');
 
 /**
  * 应用模型特定的内容修复
@@ -96,7 +97,7 @@ export const writeFile: IToolExecutor = async (command) => {
         // 返回成功消息
         const operation = fileExists ? '更新' : '创建';
         return {
-            toolResult: `成功${operation}文件: ${originalPath}\n文件内容已写入 ${contentBuffer.toString()})`,
+            toolResult: `成功${operation}文件: ${originalPath}\n文件内容已写入 ${textDecoder.decode(contentBuffer)})`,
         };
     } catch (error: any) {
         const message = error instanceof Error ? error.message : String(error);

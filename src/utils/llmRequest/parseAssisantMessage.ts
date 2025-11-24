@@ -232,6 +232,6 @@ export function parseOriginAssistantMessage(command: { assistantMessage: string,
     contentBlocks.forEach((block, index) => {
         block.id = requestId + '_' + index
     })
-    console.log('contentBlocks is:', contentBlocks)
+    // console.log('contentBlocks is:', contentBlocks)
     return contentBlocks
 }

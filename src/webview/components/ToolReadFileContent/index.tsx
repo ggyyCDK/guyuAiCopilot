@@ -1,6 +1,5 @@
-import { ChatMessage, MessageType, MessageStatus } from '@/type/imType/im';
-import { removeThinkingTags } from '@/utils/llmUtils/chat/chatMessageUtils';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC } from 'react';
+import { ChatMessage } from '@/type/imType/im';
 import {
     FileAddOutlined
 } from '@ant-design/icons';

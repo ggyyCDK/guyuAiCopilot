@@ -4,6 +4,7 @@ import TextMessageContent from './TextMessageContent'
 import ToolAttempCompletionContent from './ToolAttempCompletionContent';
 import ToolReadFileContent from './ToolReadFileContent';
 import ToolWriteFileContent from './ToolWriteFileContent';
+import ToolReplaceInFileContent from './ToolReplaceInFileContent';
 import ToolListFilesContent from './ToolListFilesContent';
 
 interface MessageContentProps {
@@ -23,6 +24,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolReadFileContent message={message}></ToolReadFileContent>
                 case 'write_to_file':
                     return <ToolWriteFileContent message={message}></ToolWriteFileContent>
+                case 'replace_in_file':
+                    return <ToolReplaceInFileContent message={message}></ToolReplaceInFileContent>
                 case 'list_files':
                     return <ToolListFilesContent message={message}></ToolListFilesContent>
                 case 'attempt_completion':

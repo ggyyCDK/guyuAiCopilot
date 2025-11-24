@@ -12,7 +12,7 @@ function getWorkspaceRootPath() {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor) {
     const currentFile = activeEditor.document.uri.fsPath;
-    console.log('当前打开的文件:', currentFile);
+    // console.log('当前打开的文件:', currentFile);
     return currentFile;
   }
 
@@ -49,7 +49,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
   const handleIntervalMessage = () => {
     if (cachedContent) {
       const message = { segmentContent: cachedContent, content }
-      console.log('throttle message is:', message)
+      // console.log('throttle message is:', message)
       onIntervalMessage?.(message)
       cachedContent = ''
     }
@@ -109,7 +109,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
           }
           case EventType.Complete: {
             isCompleted = true
-            throttleOnMessage.flush()
+            // throttleOnMessage.flush()
             handleIntervalMessage()
             onComplete?.({ segmentContent: '', content })
             break
@@ -121,7 +121,10 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
             break
           }
           case EventType.Usage:
-          case EventType.Null:
+          case EventType.Null: {
+            // EventType.Null 不返回数据，直接跳过
+            break;
+          }
           default:
             break
         }

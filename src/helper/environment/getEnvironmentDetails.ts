@@ -22,7 +22,7 @@ export const getVisibleFiles = (): string => {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
         const currentFile = activeEditor.document.uri.fsPath;
-        console.log('当前打开的文件:', currentFile);
+        // console.log('当前打开的文件:', currentFile);
         return currentFile;
     }
 

@@ -7,6 +7,7 @@ import { readFile } from "@/helper/tools/readFiles";
 import { listFiles } from "@/helper/tools/listFiles";
 import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 import { writeFile } from "@/helper/tools/writeFiles";
+import { replaceInFile } from "@/helper/tools/replaceInFile";
 
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
 
@@ -73,6 +74,19 @@ export const parseToolUse = async (block: ToolUse) => {
                 toolUseCommand: block,
             })
             console.log('写完啦', toolResult)
+            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
+            break
+        }
+        case 'replace_in_file': {
+            if (block.partial) {
+                console.log('replace_in_file is partial')
+                break
+            }
+            console.log('执行到替换文件啦！', block)
+            const { toolResult } = await replaceInFile({
+                toolUseCommand: block,
+            })
+            console.log('替换完啦', toolResult)
             pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
             break
         }

@@ -63,7 +63,7 @@ export const presentAssistantMessage = async function () {
     const block = cloneDeep(
         multiRoundSharedState.assistantMessageContent[multiRoundSharedState.currentStreamingContentIndex],
     );
-    console.log('开始执行解析助手内容的block了', block.type, block.content, block.params, block.partial)
+    // console.log('开始执行解析助手内容的block了', block.type, block.content, block.params, block.partial)
     // 根据内容块类型进行不同的处理
     switch (block.type) {
         case 'text':
