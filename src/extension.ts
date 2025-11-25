@@ -7,7 +7,11 @@ import { SidebarProvider } from './provider';
 export function activate(context: vscode.ExtensionContext) {
   const sidebarPanel = new SidebarProvider(context);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider('vs-sidebar-view', sidebarPanel)
+    vscode.window.registerWebviewViewProvider('vs-sidebar-view', sidebarPanel, {
+      webviewOptions: {
+        retainContextWhenHidden: true,
+      },
+    })
   );
   console.log('activate window is', vscode.window)
 }

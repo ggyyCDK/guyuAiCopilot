@@ -13,7 +13,7 @@
 
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 import { parseText } from '@/utils/assisantPresentStore/parseText';
-import { parseToolUse } from '@/utils/assisantPresentStore/toolExecutor';
+import { parseToolUse } from '@/utils/llmUtils/toolExecutor';
 import { cloneDeep } from 'lodash';
 
 /**

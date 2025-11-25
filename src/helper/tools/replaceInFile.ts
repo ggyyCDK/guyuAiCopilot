@@ -3,6 +3,7 @@ import * as path from 'path';
 import { TextEncoder, TextDecoder } from 'util';
 import { IToolExecutor } from '@/type/tools/msgToolsParse';
 import { constructNewFileContent } from '@/utils/llmUtils/diff/diff';
+import { openDiffViewWithOriginalContent } from '@/utils/llmUtils/diffView/openDiffView';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder('utf-8');
@@ -98,6 +99,12 @@ export const replaceInFile: IToolExecutor = async (command) => {
         // 写入新内容
         const contentBuffer = textEncoder.encode(newContent);
         await vscode.workspace.fs.writeFile(fileUri, contentBuffer);
+
+        try {
+            await openDiffViewWithOriginalContent(originalContent, fileUri);
+        } catch (error) {
+            console.warn('Failed to open diff view after replace_in_file execution', error);
+        }
 
         // 计算变更统计
         const originalLines = originalContent.split('\n').length;
