@@ -17,8 +17,8 @@ const vscode = (window as any).acquireVsCodeApi();
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
-  const [ak, setAk] = useState<string>('0df43be045c860540270303846a2605b');
-  const [apiUrl, setApiUrl] = useState<string>('https://idealab.alibaba-inc.com/api/openai/v1/chat/completions');
+  const [ak, setAk] = useState<string>('');
+  const [apiUrl, setApiUrl] = useState<string>('');
   const { chatMessages, chatLoading, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
@@ -152,7 +152,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
         <div className="input-container">
           <div className="config-inputs">
-            <Input
+            {/* <Input
               placeholder="请输入访问密钥 (AK)"
               value={ak}
               onChange={(e) => setAk(e.target.value)}
@@ -163,7 +163,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
               className="config-input"
-            />
+            /> */}
           </div>
           <Input.TextArea
             style={{ color: '#fff' }}
