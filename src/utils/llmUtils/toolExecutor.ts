@@ -8,8 +8,15 @@ import { listFiles } from "@/helper/tools/listFiles";
 import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
+import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
+import * as vscode from 'vscode';
 
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
+
+// 全局变量存储扫描动画控制器实例
+let scanAnimationController: ScanAnimationController | null = null;
+// 记录当前正在扫描的文件路径，避免重复启动动画
+let lastScannedPath: string | null = null;
 
 const createToolRejectionMessage = (block: ToolUse, reason: string): void => {
     multiRoundSharedState.userMessageContent.push({
@@ -79,16 +86,82 @@ export const parseToolUse = async (block: ToolUse) => {
         }
         case 'replace_in_file': {
             if (block.partial) {
-                console.log('replace_in_file is partial')
-                break
+                console.log('replace_in_file is partial');
+
+                // 获取文件路径
+                const originalPath = block.params.path;
+                if (originalPath) {
+                    try {
+                        // 解析文件路径（支持相对路径和绝对路径）
+                        const path = await import('path');
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        const workspaceRoot = workspaceFolders && workspaceFolders.length > 0
+                            ? workspaceFolders[0].uri.fsPath
+                            : undefined;
+
+                        const resolvedPath = path.isAbsolute(originalPath)
+                            ? originalPath
+                            : workspaceRoot
+                                ? path.join(workspaceRoot, originalPath)
+                                : originalPath;
+
+                        // 只在文件路径改变或首次启动时才创建新的扫描动画
+                        if (resolvedPath !== lastScannedPath) {
+                            // 如果已经有扫描动画在运行，先停止它
+                            if (scanAnimationController) {
+                                scanAnimationController.stop();
+                                scanAnimationController = null;
+                            }
+
+                            // 打开文件
+                            const fileUri = vscode.Uri.file(resolvedPath);
+                            const document = await vscode.workspace.openTextDocument(fileUri);
+                            const editor = await vscode.window.showTextDocument(document, {
+                                preview: false,
+                                viewColumn: vscode.ViewColumn.Active
+                            });
+
+                            // 创建新的扫描动画控制器
+                            scanAnimationController = new ScanAnimationController(editor);
+
+                            // 根据文件大小估算执行时间，计算合适的扫描速度
+                            const totalLines = document.lineCount;
+                            // 估算：小文件约2-3秒，大文件约5-10秒
+                            const estimatedTime = Math.max(2000, Math.min(10000, 2000 + totalLines * 3));
+                            const scanSpeed = estimatedTime / totalLines;
+
+                            scanAnimationController.start(scanSpeed);
+
+                            // 记录当前扫描的文件路径
+                            lastScannedPath = resolvedPath;
+
+                            console.log(`Started scan animation for: ${resolvedPath}, estimated time: ${estimatedTime}ms, speed: ${scanSpeed.toFixed(1)}ms/line`);
+                        } else {
+                            console.log('Scan animation already running for:', resolvedPath);
+                        }
+                    } catch (error) {
+                        console.error('Failed to open file for scan animation:', error);
+                    }
+                }
+                break;
             }
-            console.log('执行到替换文件啦！', block)
+
+            console.log('执行到替换文件啦！', block);
+
+            // 如果扫描动画正在运行，让它快速完成
+            if (scanAnimationController) {
+                await scanAnimationController.finishScanning();
+                scanAnimationController = null;
+            }
+            // 重置扫描路径记录
+            lastScannedPath = null;
+
             const { toolResult } = await replaceInFile({
                 toolUseCommand: block,
-            })
-            console.log('替换完啦', toolResult)
-            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
-            break
+            });
+            console.log('替换完啦', toolResult);
+            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) });
+            break;
         }
         case 'attempt_completion': {
             if (block.partial) {
