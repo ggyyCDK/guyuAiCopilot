@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ReactDom from 'react-dom';
 import { useIMStore } from '@/store/imStore/createStore'
 import { ChatMessage, MessageStatus, MessageType } from '@/type/imType/im'
@@ -8,17 +8,23 @@ import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
+import SettingsPanel from './components/SettingsPanel'
 import './index.css';
 
 interface ISidebarProps { }
 
 const vscode = (window as any).acquireVsCodeApi();
 
+const SETTINGS_STORAGE_KEY = 'schoober-ai-settings';
+
+type ViewMode = 'chat' | 'settings';
+
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [error, setError] = useState<string>('');
   const [question, setQuestion] = useState<string>('');
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
+  const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const { chatMessages, chatLoading, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
@@ -38,6 +44,30 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     }
   }, [lastMessage])
 
+  useEffect(() => {
+    try {
+      const storedConfig = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (storedConfig) {
+        const { ak: savedAk = '', apiUrl: savedApiUrl = '' } = JSON.parse(storedConfig);
+        setAk(savedAk);
+        setApiUrl(savedApiUrl);
+      }
+    } catch (error) {
+      console.warn('读取本地配置失败', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        SETTINGS_STORAGE_KEY,
+        JSON.stringify({ ak, apiUrl })
+      );
+    } catch (error) {
+      console.warn('保存本地配置失败', error);
+    }
+  }, [ak, apiUrl]);
+
   /**
    * 处理 provider 发送过来的请求
    * @param event
@@ -53,7 +83,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         mergeMessages(serverMessageList.map(transformServerMessage))
         break;
 
-
+      case 'update-loading':
+        // 更新 loading 状态
+        useIMStore.setState({
+          chatLoading: payload.chatLoading
+        });
+        break;
 
       case 'stream-error':
         console.error('Stream error:', payload.error);
@@ -117,65 +152,90 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     </div>
   }
 
+  const configSummaries = useMemo(() => {
+    return [
+      { label: 'AK', status: ak ? '已配置' : '未设置' },
+      { label: 'API', status: apiUrl ? '已配置' : '未设置' }
+    ]
+  }, [ak, apiUrl])
+
   console.log(chatMessages, 'chatMessages666')
   return (
     <>
       <div className='aiLayout'>
         <div className="app-header">
-          <div className="app-title">✨ SchooberAi 助手</div>
-          <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
-        </div>
-
-        {/* 输出内容区域 */}
-        <div className="content-area" ref={containerRef}>
-          {error && (
-            <div className="error-message">
-              错误: {error}
+          <div className='header-row'>
+            <div>
+              <div className="app-title">✨ SchooberAi 助手</div>
+              <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
+            </div>
+            <button
+              className='settings-button'
+              onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
+            >
+              {viewMode === 'chat' ? '⚙️ 设置' : '← 返回'}
+            </button>
+          </div>
+          {viewMode === 'chat' && (
+            <div className='config-summary'>
+              {configSummaries.map((item) => (
+                <div key={item.label} className='config-summary-pill'>
+                  <span>{item.label}</span>
+                  <strong>{item.status}</strong>
+                </div>
+              ))}
             </div>
           )}
+        </div>
 
-          {/* 打字机效果的流式文本 */}
+        {viewMode === 'chat' ? (
+          <>
+            {/* 输出内容区域 */}
+            <div className="content-area" ref={containerRef}>
+              {error && (
+                <div className="error-message">
+                  错误: {error}
+                </div>
+              )}
 
-          {
-            chatMessages?.length > 0 && <div className="stream-text-container" >
-              <div className="stream-text-content" >
-                {chatMessages.map(renderLLMMessage)}
-              </div>
+              {/* 打字机效果的流式文本 */}
+
               {
-                chatLoading && <div className="fade">generating...</div>
+                chatMessages?.length > 0 && <div className="stream-text-container" >
+                  <div className="stream-text-content" >
+                    {chatMessages.map(renderLLMMessage)}
+                  </div>
+                  {
+                    chatLoading && <div className="fade">generating...</div>
+                  }
+                </div>
               }
+
+
             </div>
-          }
 
-
-        </div>
-
-        <div className="input-container">
-          <div className="config-inputs">
-            {/* <Input
-              placeholder="请输入访问密钥 (AK)"
-              value={ak}
-              onChange={(e) => setAk(e.target.value)}
-              className="config-input"
-            />
-            <Input
-              placeholder="请输入 API 服务地址"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-              className="config-input"
-            /> */}
-          </div>
-          <Input.TextArea
-            style={{ color: '#fff' }}
-            placeholder="请输入你的问题，比如：如何优化这段代码？（按 Enter 发送，Shift+Enter 换行）"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoSize={{ minRows: 3, maxRows: 6 }}
-            disabled={chatLoading}
-            className="question-input"
+            <div className="input-container">
+              <Input.TextArea
+                style={{ color: '#fff' }}
+                placeholder="请输入你的问题，比如：如何优化这段代码？（按 Enter 发送，Shift+Enter 换行）"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoSize={{ minRows: 3, maxRows: 6 }}
+                disabled={chatLoading}
+                className="question-input"
+              />
+            </div>
+          </>
+        ) : (
+          <SettingsPanel
+            ak={ak}
+            apiUrl={apiUrl}
+            onAkChange={setAk}
+            onApiUrlChange={setApiUrl}
+            onBack={() => setViewMode('chat')}
           />
-        </div>
+        )}
       </div>
     </>
   );

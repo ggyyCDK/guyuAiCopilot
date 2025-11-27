@@ -10,7 +10,6 @@ import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
-
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
 
 // 全局变量存储扫描动画控制器实例
@@ -161,6 +160,22 @@ export const parseToolUse = async (block: ToolUse) => {
             });
             console.log('替换完啦', toolResult);
             pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) });
+            break;
+        }
+
+        case 'ask_followup_question': {
+            if (block.partial) {
+                break;
+            }
+            console.log('到了ask_followup_question')
+
+            // 通过 webview postMessage 通知前端更新 loading 状态
+            if (multiRoundSharedState.webviewView) {
+                multiRoundSharedState.webviewView.webview.postMessage({
+                    type: 'update-loading',
+                    payload: { chatLoading: false }
+                });
+            }
             break;
         }
         case 'attempt_completion': {

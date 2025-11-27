@@ -6,6 +6,7 @@ import ToolReadFileContent from './ToolReadFileContent';
 import ToolWriteFileContent from './ToolWriteFileContent';
 import ToolReplaceInFileContent from './ToolReplaceInFileContent';
 import ToolListFilesContent from './ToolListFilesContent';
+import ToolAskFollowUpQuestionContent from './ToolAskFollowUpQuestionContent';
 
 interface MessageContentProps {
     message: ChatMessage
@@ -30,6 +31,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolListFilesContent message={message}></ToolListFilesContent>
                 case 'attempt_completion':
                     return <ToolAttempCompletionContent message={message}></ToolAttempCompletionContent>
+                case 'ask_followup_question':
+                    return <ToolAskFollowUpQuestionContent message={message}></ToolAskFollowUpQuestionContent>
             }
         }
 

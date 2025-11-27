@@ -1,4 +1,6 @@
 import { AssistantMessageContent } from "../../type/tools/msgToolsParse";
+import * as vscode from 'vscode';
+
 interface MultiRoundSharedState {
     userMessageContentReady: boolean;
     currentStreamingContentIndex: number;
@@ -17,6 +19,9 @@ interface MultiRoundSharedState {
     lastMessageTs?: number;
     askResponseText?: string;
     askResponse?: any;
+
+    // webview 引用，用于向前端发送消息
+    webviewView?: vscode.WebviewView;
 }
 
 

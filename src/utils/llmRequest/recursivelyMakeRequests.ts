@@ -16,6 +16,10 @@ export const nextId = () => {
 export const recursivelyMakeRequests = async function (command: multiRoundTaskParams, webviewView: vscode.WebviewView) {
 
     const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails = false } = command;
+
+    // 将 webviewView 保存到共享状态中，以便工具执行时可以访问
+    multiRoundSharedState.webviewView = webviewView;
+
     if (question.length < 1) {
         console.log('用户输入为空')
         return true

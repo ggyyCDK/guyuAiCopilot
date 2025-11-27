@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TextDecoder } from 'util';
+import { addLineNumbers } from '@/utils/llmUtils/path/addLineNumbers';
 import { IToolExecutor } from '@/type/tools/msgToolsParse'
 
 const textDecoder = new TextDecoder('utf-8');
@@ -32,7 +33,7 @@ export const readFile: IToolExecutor = async (command) => {
         const fileUri = vscode.Uri.file(resolvedPath);
         const fileBuffer = await vscode.workspace.fs.readFile(fileUri);
         return {
-            toolResult: textDecoder.decode(fileBuffer),
+            toolResult: addLineNumbers(textDecoder.decode(fileBuffer)),
         }
     } catch (error: any) {
         const message = error instanceof Error ? error.message : String(error);
