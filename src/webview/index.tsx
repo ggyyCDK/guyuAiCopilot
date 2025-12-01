@@ -92,11 +92,11 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         break;
 
       case 'update-tokens':
-        // 累积token数
+        // 更新为最新的 token 数（不是累加）
         const { totalTokens: newTokens } = payload;
-        useIMStore.setState((state) => ({
-          totalTokens: state.totalTokens + newTokens
-        }));
+        useIMStore.setState({
+          totalTokens: newTokens
+        });
         break;
 
       case 'stream-error':
@@ -161,11 +161,49 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     </div>
   }
 
+  // 格式化大数字（参考 Roo-Code 的实现）
+  const formatLargeNumber = (num: number): string => {
+    if (num >= 1e9) {
+      return (num / 1e9).toFixed(1) + 'b';
+    }
+    if (num >= 1e6) {
+      return (num / 1e6).toFixed(1) + 'm';
+    }
+    if (num >= 1e3) {
+      return (num / 1e3).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+
+  // Token 限制（128k context window）
+  const TOKEN_LIMIT = 128000;
+
   const configSummaries = useMemo(() => {
+    // 安全处理 token 值
+    const safeTokens = Math.max(0, totalTokens);
+    const safeLimit = Math.max(0, TOKEN_LIMIT);
+    
+    // 计算百分比
+    const tokenPercentage = safeLimit > 0 ? Math.min((safeTokens / safeLimit) * 100, 100) : 0;
+    
     return [
-      { label: 'AK', status: ak ? '已配置' : '未设置' },
-      { label: 'API', status: apiUrl ? '已配置' : '未设置' },
-      { label: 'Tokens', status: totalTokens.toLocaleString() }
+      {
+        label: 'AK',
+        status: ak ? '已配置' : '未设置',
+        type: 'text'
+      },
+      {
+        label: 'API',
+        status: apiUrl ? '已配置' : '未设置',
+        type: 'text'
+      },
+      {
+        label: 'Tokens',
+        type: 'progress',
+        percentage: tokenPercentage,
+        current: safeTokens,
+        limit: safeLimit
+      }
     ]
   }, [ak, apiUrl, totalTokens])
 
@@ -176,7 +214,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         <div className={styles.appHeader}>
           <div className={styles.headerRow}>
             <div>
-              <div className={styles.appTitle}>✨ SchooberAi 助手</div>
+              <div className={styles.appTitle}>✨ SchooberAi</div>
               <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
             </div>
             <div
@@ -190,8 +228,26 @@ const Sidebar: React.FC<ISidebarProps> = () => {
             <div className={styles.configSummary}>
               {configSummaries.map((item) => (
                 <div key={item.label} className={styles.configSummaryPill}>
-                  <span>{item.label}</span>
-                  <strong>{item.status}</strong>
+                  {item.type === 'progress' ? (
+                    <div className={styles.tokenProgress}>
+                      <div className={styles.tokenInfo}>
+                        <span className={styles.tokenCurrent}>{formatLargeNumber(item.current || 0)}</span>
+                        <span className={styles.tokenSeparator}>/</span>
+                        <span className={styles.tokenLimit}>{formatLargeNumber(item.limit || 0)}</span>
+                      </div>
+                      <div className={styles.progressBarWrapper}>
+                        <div
+                          className={styles.progressBarFill}
+                          style={{ width: `${item.percentage || 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{item.label}</span>
+                      <strong>{item.status}</strong>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
