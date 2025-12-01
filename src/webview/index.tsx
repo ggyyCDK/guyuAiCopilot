@@ -182,10 +182,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     // 安全处理 token 值
     const safeTokens = Math.max(0, totalTokens);
     const safeLimit = Math.max(0, TOKEN_LIMIT);
-    
+
     // 计算百分比
     const tokenPercentage = safeLimit > 0 ? Math.min((safeTokens / safeLimit) * 100, 100) : 0;
-    
+
     return [
       {
         label: 'AK',
@@ -218,7 +218,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
             </div>
             <div
-             className={styles.setting}
+              className={styles.setting}
               onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
             >
               {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
@@ -272,7 +272,11 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                     {chatMessages.map(renderLLMMessage)}
                   </div>
                   {
-                    chatLoading && <div className={styles.fade}>generating...</div>
+                    chatLoading && (
+                      <div className={styles.fade}>
+                        {lastMessage?.type === MessageType.ToolUse ? 'generating...' : 'thinking...'}
+                      </div>
+                    )
                   }
                 </div>
               }

@@ -16,6 +16,10 @@
     margin-bottom: 4px;
   }
 
+  :global(h2) {
+    margin: 10px 0px;
+  }
+
   :global(code) {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 4px;
