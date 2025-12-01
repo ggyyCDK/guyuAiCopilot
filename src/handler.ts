@@ -38,7 +38,7 @@ function getWorkspaceCwd() {
  * @returns void
  */
 export const streamAgentChat = async (command: ApiRequestParams) => {
-  const { question, workerId, conversationId, baseUrl, variableMaps, onMessage, onIntervalMessage, onComplete, onError } = command;
+  const { question, workerId, conversationId, baseUrl, variableMaps, onMessage, onIntervalMessage, onUsage, onComplete, onError } = command;
   const { llmConfig } = variableMaps ?? {}
   const { ak, ApiUrl } = llmConfig
   let content = ''
@@ -120,7 +120,10 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
             onError?.(message.content || 'stream error')
             break
           }
-          case EventType.Usage:
+          case EventType.Usage: {
+            onUsage?.(message.content)
+            break
+          }
           case EventType.Null: {
             // EventType.Null 不返回数据，直接跳过
             break;
@@ -167,6 +170,11 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
         baseUrl,
         onIntervalMessage: (msg) => {
           responseBufferList.push(msg.segmentContent)
+        },
+        onUsage: (usage) => {
+          console.log('usage is:', usage)
+          // 将usage数据传递给调用方
+          command.onUsage?.(usage)
         },
         onComplete: (data) => {
           isCompleted = true

@@ -60,6 +60,20 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         conversationId,
         variableMaps,
         baseUrl,
+        onUsage: (usage) => {
+            // 解析usage数据并发送到webview
+            try {
+                const usageData = typeof usage === 'string' ? JSON.parse(usage) : usage;
+                const totalTokens = usageData.total_tokens || 0;
+                
+                webviewView.webview.postMessage({
+                    type: 'update-tokens',
+                    payload: { totalTokens }
+                });
+            } catch (error) {
+                console.error('解析usage数据失败:', error);
+            }
+        }
     });
     let assistantMessage = '';
 

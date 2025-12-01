@@ -6,6 +6,7 @@ import { transformServerMessage } from '@/utils/llmRequest/transformServerMessag
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
+import { SettingOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
@@ -25,7 +26,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
-  const { chatMessages, chatLoading, mergeMessages, getLastMessage } = useIMStore()
+  const { chatMessages, chatLoading, totalTokens, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
   useEffect(() => {
@@ -88,6 +89,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         useIMStore.setState({
           chatLoading: payload.chatLoading
         });
+        break;
+
+      case 'update-tokens':
+        // 累积token数
+        const { totalTokens: newTokens } = payload;
+        useIMStore.setState((state) => ({
+          totalTokens: state.totalTokens + newTokens
+        }));
         break;
 
       case 'stream-error':
@@ -155,9 +164,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const configSummaries = useMemo(() => {
     return [
       { label: 'AK', status: ak ? '已配置' : '未设置' },
-      { label: 'API', status: apiUrl ? '已配置' : '未设置' }
+      { label: 'API', status: apiUrl ? '已配置' : '未设置' },
+      { label: 'Tokens', status: totalTokens.toLocaleString() }
     ]
-  }, [ak, apiUrl])
+  }, [ak, apiUrl, totalTokens])
 
   console.log(chatMessages, 'chatMessages666')
   return (
@@ -169,12 +179,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               <div className="app-title">✨ SchooberAi 助手</div>
               <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
             </div>
-            <button
-              className='settings-button'
+            <div
+             className='setting'
               onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
             >
-              {viewMode === 'chat' ? '⚙️ 设置' : '← 返回'}
-            </button>
+              {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
+            </div>
           </div>
           {viewMode === 'chat' && (
             <div className='config-summary'>

@@ -14,6 +14,7 @@ export interface ApiRequestParams {
     onIntervalMessage?: (message: IMessageResult) => void;
     onComplete?: (message: IMessageResult) => void;
     onError?: (error: any) => void;
+    onUsage?: (usage: any) => void;
 }
 
 export enum EventType {
