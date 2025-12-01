@@ -1,14 +1,50 @@
 .pre {
   text-wrap: wrap;
-}
+  word-break: break-word;
+  // line-height: 1.6;
+  font-size: 13px;
+  color: #f5f7fb;
 
-.attemptCompletionTitle {
-  color: #419d12 !important;
+  
+  :global(ul),
+  :global(ol) {
+    margin: 0 0 8px;
+    padding-left: 20px;
+  }
+
+  :global(li) {
+    margin-bottom: 4px;
+  }
+
+  :global(code) {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    color: #72ffb4;
+  }
+
+  :global(pre code) {
+    display: block;
+    padding: 12px;
+    overflow-x: auto;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  :global(blockquote) {
+    border-left: 3px solid #72ffb4;
+    padding-left: 12px;
+    margin: 0 0 12px;
+    color: #e6f5ff;
+    background: rgba(66, 157, 18, 0.16);
+  }
 }
 
 .attemptCompletionContent {
-  color: #419d12 !important;
+  // color: #419d12 !important;
   border-radius: 10px;
-  border: 1px dashed;
+  border: 1px solid #419d12;
   padding: 10px;
+  overflow: hidden;
+  background: #0f1116;
 }
