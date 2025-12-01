@@ -10,7 +10,7 @@ import { SettingOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
-import './index.css';
+import styles from './index.module.scss';
 
 interface ISidebarProps { }
 
@@ -156,7 +156,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const renderLLMMessage = (message: ChatMessage, index: number) => {
     // const isUserMessage = ChatMessageUtils.isUserMessage(message);
 
-    return <div className='messageWrapper'>
+    return <div className={styles.messageWrapper}>
       <MessageContent message={message}></MessageContent>
     </div>
   }
@@ -172,24 +172,24 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   console.log(chatMessages, 'chatMessages666')
   return (
     <>
-      <div className='aiLayout'>
-        <div className="app-header">
-          <div className='header-row'>
+      <div className={styles.aiLayout}>
+        <div className={styles.appHeader}>
+          <div className={styles.headerRow}>
             <div>
-              <div className="app-title">✨ SchooberAi 助手</div>
-              <div className="app-subtitle">智能编程助手，随时为您解答技术问题</div>
+              <div className={styles.appTitle}>✨ SchooberAi 助手</div>
+              <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
             </div>
             <div
-             className='setting'
+             className={styles.setting}
               onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
             >
               {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
             </div>
           </div>
           {viewMode === 'chat' && (
-            <div className='config-summary'>
+            <div className={styles.configSummary}>
               {configSummaries.map((item) => (
-                <div key={item.label} className='config-summary-pill'>
+                <div key={item.label} className={styles.configSummaryPill}>
                   <span>{item.label}</span>
                   <strong>{item.status}</strong>
                 </div>
@@ -201,9 +201,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         {viewMode === 'chat' ? (
           <>
             {/* 输出内容区域 */}
-            <div className="content-area" ref={containerRef}>
+            <div className={styles.contentArea} ref={containerRef}>
               {error && (
-                <div className="error-message">
+                <div className={styles.errorMessage}>
                   错误: {error}
                 </div>
               )}
@@ -211,12 +211,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               {/* 打字机效果的流式文本 */}
 
               {
-                chatMessages?.length > 0 && <div className="stream-text-container" >
-                  <div className="stream-text-content" >
+                chatMessages?.length > 0 && <div className={styles.streamTextContainer} >
+                  <div className={styles.streamTextContent} >
                     {chatMessages.map(renderLLMMessage)}
                   </div>
                   {
-                    chatLoading && <div className="fade">generating...</div>
+                    chatLoading && <div className={styles.fade}>generating...</div>
                   }
                 </div>
               }
@@ -224,7 +224,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
             </div>
 
-            <div className="input-container">
+            <div className={styles.inputContainer}>
               <Input.TextArea
                 style={{ color: '#fff' }}
                 placeholder="请输入你的问题，比如：如何优化这段代码？（按 Enter 发送，Shift+Enter 换行）"
@@ -233,7 +233,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 onKeyDown={handleKeyDown}
                 autoSize={{ minRows: 3, maxRows: 6 }}
                 disabled={chatLoading}
-                className="question-input"
+                className={styles.questionInput}
               />
             </div>
           </>
