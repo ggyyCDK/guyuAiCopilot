@@ -28,8 +28,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
+  const [isComposing, setIsComposing] = useState<boolean>(false);
   const { chatMessages, chatLoading, totalTokens, mergeMessages, getLastMessage } = useIMStore()
-  const { containerRef } = useAutoScroll([chatMessages])
+  const { containerRef, shouldAutoScroll } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
@@ -129,6 +130,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       ext: {}
     }
     mergeMessages([userMessage])
+    
+    // 发送消息后立即滚动到底部
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 100);
+    
     vscode.postMessage({
       type: 'stream-chat',
       payload: {
@@ -148,11 +157,19 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // 如果按下 Enter 且没有按住 Shift，则发送消息
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // 如果按下 Enter 且没有按住 Shift，且不在输入法组合状态，则发送消息
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
       e.preventDefault(); // 阻止换行
       handleSend();
     }
+  };
+
+  const handleCompositionStart = () => {
+    setIsComposing(true);
+  };
+
+  const handleCompositionEnd = () => {
+    setIsComposing(false);
   };
 
   const renderLLMMessage = (message: ChatMessage, index: number) => {
@@ -293,6 +310,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
                 autoSize={{ minRows: 3, maxRows: 6 }}
                 disabled={chatLoading}
                 className={styles.questionInput}
