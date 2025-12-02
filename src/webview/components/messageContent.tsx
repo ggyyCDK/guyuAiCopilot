@@ -22,7 +22,6 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
             const { toolName } = message?.content
             switch (toolName) {
                 case 'read_file':
-                    console.log('read message is:', message)
                     return <ToolReadFileContent message={message}></ToolReadFileContent>
                 case 'write_to_file':
                     return <ToolWriteFileContent message={message}></ToolWriteFileContent>
