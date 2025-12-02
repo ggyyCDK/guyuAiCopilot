@@ -27,18 +27,24 @@ function ensureProviderRegistered() {
 let currentAutoCloseTimer: NodeJS.Timeout | null = null;
 let currentDiffEditor: vscode.TextEditor | null = null;
 
-async function closeOldDiffViews() {
+export async function closeOldDiffViews() {
     try {
-        const visibleEditors = vscode.window.visibleTextEditors;
-        for (const editor of visibleEditors) {
-            if (editor.document.uri.scheme === DIFF_VIEW_URI_SCHEME) {
-                await vscode.window.showTextDocument(editor.document, {
-                    viewColumn: editor.viewColumn,
-                    preserveFocus: true,
-                });
-                await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-                console.log('Closed old diff view');
+        // 获取所有打开的标签页
+        const tabs = vscode.window.tabGroups.all.flatMap(group => group.tabs);
+        
+        // 找到所有 diff view 标签页
+        const diffTabs = tabs.filter(tab => {
+            if (tab.input instanceof vscode.TabInputTextDiff) {
+                // 检查是否是我们的 diff view（通过 scheme 判断）
+                return tab.input.original.scheme === DIFF_VIEW_URI_SCHEME;
             }
+            return false;
+        });
+
+        // 关闭所有旧的 diff view 标签页
+        if (diffTabs.length > 0) {
+            await vscode.window.tabGroups.close(diffTabs);
+            console.log(`Closed ${diffTabs.length} old diff view(s)`);
         }
     } catch (error) {
         console.warn('Failed to close old diff views:', error);
