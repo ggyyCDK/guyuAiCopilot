@@ -36,6 +36,7 @@ export const toolUseNames = [
 export type ToolUseName = (typeof toolUseNames)[number]
 
 export const toolParamNames = [
+    "args",
     "command",
     "requires_approval",
     "path",

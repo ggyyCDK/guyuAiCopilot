@@ -15,6 +15,8 @@ import styles from './index.module.scss';
 interface ISidebarProps { }
 
 const vscode = (window as any).acquireVsCodeApi();
+// 将 vscode 实例挂载到 window 对象，供其他组件使用
+(window as any).vscode = vscode;
 
 const SETTINGS_STORAGE_KEY = 'schoober-ai-settings';
 

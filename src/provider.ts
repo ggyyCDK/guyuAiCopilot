@@ -41,6 +41,30 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           }, webviewView)
           break;
         }
+        case 'open-file': {
+          // 打开文件
+          const { path } = payload;
+          if (path) {
+            try {
+              const workspaceFolders = vscode.workspace.workspaceFolders;
+              if (workspaceFolders && workspaceFolders.length > 0) {
+                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                const fullPath = vscode.Uri.file(
+                  path.startsWith('/') ? path : `${workspaceRoot}/${path}`
+                );
+                const document = await vscode.workspace.openTextDocument(fullPath);
+                await vscode.window.showTextDocument(document, {
+                  preview: false,
+                  preserveFocus: false
+                });
+              }
+            } catch (error) {
+              vscode.window.showErrorMessage(`无法打开文件: ${path}`);
+              console.error('Error opening file:', error);
+            }
+          }
+          break;
+        }
       }
     });
   }
