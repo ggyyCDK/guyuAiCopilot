@@ -191,11 +191,11 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         status: ak ? '已配置' : '未设置',
         type: 'text'
       },
-      {
-        label: 'API',
-        status: apiUrl ? '已配置' : '未设置',
-        type: 'text'
-      },
+      // {
+      //   label: 'API',
+      //   status: apiUrl ? '已配置' : '未设置',
+      //   type: 'text'
+      // },
       {
         label: 'Tokens',
         type: 'progress'

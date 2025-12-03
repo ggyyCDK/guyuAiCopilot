@@ -1,8 +1,15 @@
+.tokenProgressContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .tokenProgress {
     display: flex;
     flex-direction: column;
     gap: 6px;
     min-width: 140px;
+    flex: 1;
 }
 
 .tokenInfo {
@@ -40,4 +47,27 @@
     background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     border-radius: 2px;
     transition: width 0.3s ease-out;
+}
+
+.resetButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+
+    &:hover {
+        // background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
 }
