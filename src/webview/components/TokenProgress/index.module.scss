@@ -1,0 +1,43 @@
+.tokenProgress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+
+.tokenInfo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tokenCurrent {
+    color: #fff;
+}
+
+.tokenSeparator {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.tokenLimit {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.progressBarWrapper {
+    position: relative;
+    height: 4px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease-out;
+}

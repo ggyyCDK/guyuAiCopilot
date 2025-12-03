@@ -10,6 +10,7 @@ import { SettingOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
+import TokenProgress from './components/TokenProgress'
 import styles from './index.module.scss';
 
 interface ISidebarProps { }
@@ -180,31 +181,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     </div>
   }
 
-  // 格式化大数字（参考 Roo-Code 的实现）
-  const formatLargeNumber = (num: number): string => {
-    if (num >= 1e9) {
-      return (num / 1e9).toFixed(1) + 'b';
-    }
-    if (num >= 1e6) {
-      return (num / 1e6).toFixed(1) + 'm';
-    }
-    if (num >= 1e3) {
-      return (num / 1e3).toFixed(1) + 'k';
-    }
-    return num.toString();
-  };
-
   // Token 限制（128k context window）
   const TOKEN_LIMIT = 128000;
 
   const configSummaries = useMemo(() => {
-    // 安全处理 token 值
-    const safeTokens = Math.max(0, totalTokens);
-    const safeLimit = Math.max(0, TOKEN_LIMIT);
-
-    // 计算百分比
-    const tokenPercentage = safeLimit > 0 ? Math.min((safeTokens / safeLimit) * 100, 100) : 0;
-
     return [
       {
         label: 'AK',
@@ -218,13 +198,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       },
       {
         label: 'Tokens',
-        type: 'progress',
-        percentage: tokenPercentage,
-        current: safeTokens,
-        limit: safeLimit
+        type: 'progress'
       }
     ]
-  }, [ak, apiUrl, totalTokens])
+  }, [ak, apiUrl])
 
   console.log(chatMessages, 'chatMessages666')
   return (
@@ -248,19 +225,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               {configSummaries.map((item) => (
                 <div key={item.label} className={styles.configSummaryPill}>
                   {item.type === 'progress' ? (
-                    <div className={styles.tokenProgress}>
-                      <div className={styles.tokenInfo}>
-                        <span className={styles.tokenCurrent}>{formatLargeNumber(item.current || 0)}</span>
-                        <span className={styles.tokenSeparator}>/</span>
-                        <span className={styles.tokenLimit}>{formatLargeNumber(item.limit || 0)}</span>
-                      </div>
-                      <div className={styles.progressBarWrapper}>
-                        <div
-                          className={styles.progressBarFill}
-                          style={{ width: `${item.percentage || 0}%` }}
-                        />
-                      </div>
-                    </div>
+                    <TokenProgress current={totalTokens} limit={TOKEN_LIMIT} />
                   ) : (
                     <>
                       <span>{item.label}</span>

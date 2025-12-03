@@ -65,7 +65,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
             try {
                 const usageData = typeof usage === 'string' ? JSON.parse(usage) : usage;
                 const totalTokens = usageData.total_tokens || 0;
-                
+
                 webviewView.webview.postMessage({
                     type: 'update-tokens',
                     payload: { totalTokens }
