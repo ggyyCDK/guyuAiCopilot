@@ -7,7 +7,7 @@ export const getToolDescription = (block: ToolUse) => {
             return `[${toolName} for '${block.params.regex}'${block.params.file_pattern ? ` in '${block.params.file_pattern}'` : ""
                 }]`
         case "read_file":
-            return `[${toolName} for ${block.params.path}]`
+            return `[${toolName} for ${block.params.args}]`
         case "write_to_file":
             return `[${toolName} for ${block.params.path}]`
         case "replace_in_file":

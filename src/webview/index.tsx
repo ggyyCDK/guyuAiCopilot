@@ -131,14 +131,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       ext: {}
     }
     mergeMessages([userMessage])
-    
+
     // 发送消息后立即滚动到底部
     setTimeout(() => {
       if (containerRef.current) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
       }
     }, 100);
-    
+
     vscode.postMessage({
       type: 'stream-chat',
       payload: {

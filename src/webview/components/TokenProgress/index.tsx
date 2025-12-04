@@ -8,10 +8,6 @@ interface TokenProgressProps {
   onReset?: () => void;
 }
 
-/**
- * Token 进度条组件
- * 显示当前使用的 token 数量和总限制，以及进度条
- */
 const TokenProgress: React.FC<TokenProgressProps> = ({ current, limit, onReset }) => {
   const formatLargeNumber = (num: number): string => {
     if (num >= 1e9) {
