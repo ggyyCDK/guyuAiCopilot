@@ -8,6 +8,7 @@ import { listFiles } from "@/helper/tools/listFiles";
 import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
+import { updateTodoList } from '@/helper/tools/updateTodoList';
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -133,8 +134,6 @@ export const parseToolUse = async (block: ToolUse) => {
 
                             // 记录当前扫描的文件路径
                             lastScannedPath = resolvedPath;
-
-                            console.log(`Started scan animation for: ${resolvedPath}, estimated time: ${estimatedTime}ms, speed: ${scanSpeed.toFixed(1)}ms/line`);
                         } else {
                             console.log('Scan animation already running for:', resolvedPath);
                         }
@@ -177,6 +176,18 @@ export const parseToolUse = async (block: ToolUse) => {
                 });
             }
             break;
+        }
+
+        case 'update_todo_list': {
+            if (block.partial) {
+                break;
+            }
+            const { toolResult } = await updateTodoList({
+                toolUseCommand: block,
+            })
+            console.log('todolist result is:', toolResult)
+            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) })
+
         }
         case 'attempt_completion': {
             if (block.partial) {

@@ -24,6 +24,7 @@ export const toolUseNames = [
     "ask_followup_question",
     "plan_mode_respond",
     "load_mcp_documentation",
+    "update_todo_list",
     "attempt_completion",
     "new_task",
     "condense",
@@ -37,6 +38,7 @@ export type ToolUseName = (typeof toolUseNames)[number]
 
 export const toolParamNames = [
     "args",
+    "todos",
     "command",
     "requires_approval",
     "path",

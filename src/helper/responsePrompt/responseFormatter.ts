@@ -50,7 +50,7 @@ Otherwise, if you have not completed the task and do not need additional informa
         text: string,
         images?: string[],
         fileString?: string,
-    ): string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam> => {
+    ): string => {
         const toolResultOutput: any = []
 
         if (!(images && images.length > 0) && !fileString) {
