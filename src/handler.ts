@@ -75,7 +75,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
       variableMaps: {
         llmConfig: {
           cwdFormatted: currentCwd,
-          model: 'qwen3-coder-plus',
+          model: 'qwen3-max',
           ak,
           ApiUrl
         }
