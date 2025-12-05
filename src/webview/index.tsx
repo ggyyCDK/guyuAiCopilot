@@ -30,7 +30,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [isComposing, setIsComposing] = useState<boolean>(false);
-  const { chatMessages, chatLoading, totalTokens, mergeMessages, getLastMessage } = useIMStore()
+  const { chatMessages, chatLoading, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef, shouldAutoScroll } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
   useEffect(() => {
@@ -106,6 +106,13 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       case 'stream-error':
         console.error('Stream error:', payload.error);
         setError(payload.error);
+        break;
+      
+      case 'update-todo-list':
+        // 更新待办事项列表
+        useIMStore.setState({
+          todoList: payload.todoList || []
+        });
         break;
     }
   };
@@ -234,6 +241,32 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+        <div className={styles.todolist}>
+          {todoList && todoList.length > 0 && (
+            <div className={styles.todoListContainer}>
+              <h3>待办事项</h3>
+              <ul>
+                {todoList.map((todo) => (
+                  <li key={todo.id} className={styles.todoItem}>
+                    <span 
+                      className={`${styles.todoStatus} ${
+                        todo.status === 'completed' 
+                          ? styles.completed 
+                          : todo.status === 'in_progress' 
+                            ? styles.inProgress 
+                            : styles.pending
+                      }`}
+                    >
+                      {todo.status === 'completed' ? '✓' : 
+                       todo.status === 'in_progress' ? '⋯' : '○'}
+                    </span>
+                    <span className={styles.todoContent}>{todo.content}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

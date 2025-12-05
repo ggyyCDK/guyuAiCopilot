@@ -45,7 +45,7 @@ function validateTodos(todos: any[]): { valid: boolean; error?: string } {
     return { valid: true }
 }
 
-function normalizeStatus(status: string | undefined): TodoStatus {
+export function normalizeStatus(status: string | undefined): TodoStatus {
     if (status === "completed") return "completed"
     if (status === "in_progress") return "in_progress"
     return "pending"
@@ -63,8 +63,17 @@ function todoListToMarkdown(todos: TodoItem[]): string {
 }
 
 export async function setTodoListForTask(todos?: TodoItem[]) {
-
     const todoList = Array.isArray(todos) ? todos : []
+    // 通过 postMessage 发送 todoList 更新消息到前端
+    const vscode = (global as any).vscode;
+    if (vscode && typeof vscode.postMessage === 'function') {
+        vscode.postMessage({
+            type: 'update-todo-list',
+            payload: {
+                todoList: todoList
+            }
+        });
+    }
 }
 
 let approvedTodoList: TodoItem[] | undefined = undefined
@@ -100,7 +109,7 @@ export const updateTodoList: IToolExecutor = async (command) => {
             approvedTodoList !== undefined && JSON.stringify(normalizedTodos) !== JSON.stringify(approvedTodoList)
 
         await setTodoListForTask(normalizedTodos)
-
+        console.log('normalizedTodos is', isTodoListChanged, normalizedTodos)
         if (isTodoListChanged) {
             const md = todoListToMarkdown(normalizedTodos)
             return {

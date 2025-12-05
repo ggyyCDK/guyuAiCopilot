@@ -2,6 +2,7 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { shallow } from 'zustand/shallow'
 import { IMState, initialIMState } from './initalState'
 import { ChatMessage } from "@/type/imType/im";
+import { TodoItem } from '@/type/tools/todo'
 import { merge } from 'lodash'
 
 interface Action {
@@ -9,6 +10,8 @@ interface Action {
     mergeMessages: (newMessages: Array<ChatMessage>) => void
     //获取最后一条消息
     getLastMessage: () => ChatMessage | undefined
+    //更新待办事项列表
+    setTodoList: (todoList: TodoItem[]) => void
 
 }
 
@@ -34,6 +37,9 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
     },
     getLastMessage: () => {
         return get().chatMessages[get().chatMessages.length - 1]
+    },
+    setTodoList: (todoList: TodoItem[]) => {
+        set({ todoList });
     },
     shallow
 }))

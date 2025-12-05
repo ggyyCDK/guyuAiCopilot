@@ -182,6 +182,7 @@ export const parseToolUse = async (block: ToolUse) => {
             if (block.partial) {
                 break;
             }
+            console.log('到了update_todo_list', block)
             const { toolResult } = await updateTodoList({
                 toolUseCommand: block,
             })

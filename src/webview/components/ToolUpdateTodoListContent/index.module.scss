@@ -1,0 +1,42 @@
+.pre {
+  text-wrap: wrap;
+}
+
+.todoList {
+
+  // 任务列表样式
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  li {
+    position: relative;
+    padding-left: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.6;
+
+    // Checkbox 样式
+    input[type="checkbox"] {
+      position: absolute;
+      left: 0;
+      top: 0.3em;
+      width: 1em;
+      height: 1em;
+      cursor: pointer;
+      accent-color: #52c41a; // 绿色主题
+    }
+
+    // 已完成的任务项
+    &:has(input[type="checkbox"]:checked) {
+      color: #888;
+      text-decoration: line-through;
+    }
+  }
+
+  // 段落间距
+  p {
+    margin: 0.5em 0;
+  }
+}
