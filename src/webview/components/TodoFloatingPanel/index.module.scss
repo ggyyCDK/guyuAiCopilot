@@ -1,0 +1,155 @@
+// 待办事项包裹容器
+.todoWrapper {
+    position: relative;
+    margin-top: 8px;
+}
+
+// 待办事项折叠按钮
+.todoToggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    user-select: none;
+    max-width: 100%;
+    overflow: hidden;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .currentTaskLabel {
+        flex-shrink: 0;
+        font-weight: 500;
+    }
+
+    .currentTaskContent {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #fbbf24; // 黄色，表示进行中
+        font-weight: 500;
+    }
+
+    .toggleIcon {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+}
+
+// 待办事项浮层
+.todoFloatingPanel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    min-width: 300px;
+    max-width: 400px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: rgba(31, 31, 31, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    animation: slideDown 0.2s ease;
+    padding: 12px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Todo List Container */
+.todoListContainer {
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+.todoItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.todoStatus {
+    font-size: 14px;
+    min-width: 16px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.completed {
+    color: #4ade80;
+    /* green-400 */
+}
+
+.inProgress {
+    color: #fbbf24;
+    /* amber-400 */
+}
+
+.pending {
+    color: #9ca3af;
+    /* gray-400 */
+}
+
+.todoContent {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    word-break: break-word;
+    line-height: 1.4;
+
+    .completed & {
+        text-decoration: line-through;
+        color: rgba(255, 255, 255, 0.6);
+    }
+}

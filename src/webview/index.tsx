@@ -11,6 +11,7 @@ import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
 import TokenProgress from './components/TokenProgress'
+import TodoFloatingPanel from './components/TodoFloatingPanel'
 import styles from './index.module.scss';
 
 interface ISidebarProps { }
@@ -107,15 +108,17 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         console.error('Stream error:', payload.error);
         setError(payload.error);
         break;
-      
+
       case 'update-todo-list':
         // 更新待办事项列表
+        console.log('更新待办事项列表 is', todoList)
         useIMStore.setState({
           todoList: payload.todoList || []
         });
         break;
     }
   };
+  console.log('todoList is', todoList)
   const nextId = () => {
     return `${new Date().getTime()}_${uniqueId()}`
   }
@@ -228,46 +231,24 @@ const Sidebar: React.FC<ISidebarProps> = () => {
             </div>
           </div>
           {viewMode === 'chat' && (
-            <div className={styles.configSummary}>
-              {configSummaries.map((item) => (
-                <div key={item.label} className={styles.configSummaryPill}>
-                  {item.type === 'progress' ? (
-                    <TokenProgress current={totalTokens} limit={TOKEN_LIMIT} />
-                  ) : (
-                    <>
-                      <span>{item.label}</span>
-                      <strong>{item.status}</strong>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className={styles.todolist}>
-          {todoList && todoList.length > 0 && (
-            <div className={styles.todoListContainer}>
-              <h3>待办事项</h3>
-              <ul>
-                {todoList.map((todo) => (
-                  <li key={todo.id} className={styles.todoItem}>
-                    <span 
-                      className={`${styles.todoStatus} ${
-                        todo.status === 'completed' 
-                          ? styles.completed 
-                          : todo.status === 'in_progress' 
-                            ? styles.inProgress 
-                            : styles.pending
-                      }`}
-                    >
-                      {todo.status === 'completed' ? '✓' : 
-                       todo.status === 'in_progress' ? '⋯' : '○'}
-                    </span>
-                    <span className={styles.todoContent}>{todo.content}</span>
-                  </li>
+            <>
+              <div className={styles.configSummary}>
+                {configSummaries.map((item) => (
+                  <div key={item.label} className={styles.configSummaryPill}>
+                    {item.type === 'progress' ? (
+                      <TokenProgress current={totalTokens} limit={TOKEN_LIMIT} />
+                    ) : (
+                      <>
+                        <span>{item.label}</span>
+                        <strong>{item.status}</strong>
+                      </>
+                    )}
+                  </div>
                 ))}
-              </ul>
-            </div>
+              </div>
+              {/* 待办事项组件 - 单独一行 */}
+              <TodoFloatingPanel todoList={todoList} />
+            </>
           )}
         </div>
 

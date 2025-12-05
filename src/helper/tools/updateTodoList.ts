@@ -2,6 +2,8 @@ import { IToolExecutor } from '@/type/tools/msgToolsParse'
 import { TodoItem, TodoStatus, todoStatusSchema } from '@/type/tools/todo'
 import { pushToolResult } from "@/utils/assisantPresentStore/toolUtils/pushToolResult";
 import { formatResponse } from '@/helper/responsePrompt/responseFormatter'
+import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
+
 import crypto from "crypto"
 import cloneDeep from "clone-deep"
 
@@ -64,15 +66,18 @@ function todoListToMarkdown(todos: TodoItem[]): string {
 
 export async function setTodoListForTask(todos?: TodoItem[]) {
     const todoList = Array.isArray(todos) ? todos : []
-    // 通过 postMessage 发送 todoList 更新消息到前端
-    const vscode = (global as any).vscode;
-    if (vscode && typeof vscode.postMessage === 'function') {
-        vscode.postMessage({
+    // 通过 webview postMessage 发送 todoList 更新消息到前端
+
+    console.log('我来更新啦', multiRoundSharedState.webviewView)
+    if (multiRoundSharedState.webviewView) {
+        multiRoundSharedState.webviewView.webview.postMessage({
             type: 'update-todo-list',
             payload: {
                 todoList: todoList
             }
         });
+    } else {
+        console.warn('webviewView is not available, cannot update todo list');
     }
 }
 

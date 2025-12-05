@@ -98,6 +98,7 @@
     justify-content: space-between;
     gap: 10px;
     margin-top: 12px;
+    position: relative; // 为浮层定位提供参考
 }
 
 .configSummaryPill {
@@ -584,81 +585,5 @@ textarea::placeholder {
     &:hover {
         background: rgba(255, 255, 255, 0.2);
         transform: translateY(-1px);
-    }
-}
-
-/* Todo List Styles */
-.todolist {
-    flex-shrink: 0;
-    padding: 16px;
-    margin-bottom: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.todoListContainer {
-    h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: rgba(255, 255, 255, 0.9);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        
-        &::before {
-            content: "📋";
-            font-size: 18px;
-        }
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-}
-
-.todoItem {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    
-    &:last-child {
-        border-bottom: none;
-    }
-}
-
-.todoStatus {
-    font-size: 14px;
-    min-width: 16px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.completed {
-    color: #4ade80; /* green-400 */
-}
-
-.inProgress {
-    color: #fbbf24; /* amber-400 */
-}
-
-.pending {
-    color: #9ca3af; /* gray-400 */
-}
-
-.todoContent {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.85);
-    word-break: break-word;
-    line-height: 1.4;
-    
-    .completed & {
-        text-decoration: line-through;
-        color: rgba(255, 255, 255, 0.6);
     }
 }
