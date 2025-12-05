@@ -34,6 +34,11 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const { chatMessages, chatLoading, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef, shouldAutoScroll } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
+
+  // 为当前会话窗口生成唯一的 conversationId，在组件生命周期内保持不变
+  const conversationId = useMemo(() => {
+    return `conversation_${new Date().getTime()}_${uniqueId()}`
+  }, [])
   useEffect(() => {
     window.addEventListener('message', providerMessageHandler);
     return () => {
@@ -153,7 +158,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       type: 'stream-chat',
       payload: {
         question,
-        conversationId: 'GUYUTEST1',
+        conversationId: conversationId,
         workerId: 'guyu',
         variableMaps: {
           llmConfig: {
