@@ -1,42 +1,67 @@
-.pre {
-  text-wrap: wrap;
+.todoContainer {
+  padding: 6px 0 2px 0;
 }
 
 .todoList {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
 
-  // 任务列表样式
-  ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
+.todoItem {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: flex-start;
+  min-height: 20px;
+}
 
-  li {
-    position: relative;
-    padding-left: 1.5em;
-    margin-bottom: 0.5em;
-    line-height: 1.6;
+.statusIcon {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  margin-top: 7px;
+  flex-shrink: 0;
+}
 
-    // Checkbox 样式
-    input[type="checkbox"] {
-      position: absolute;
-      left: 0;
-      top: 0.3em;
-      width: 1em;
-      height: 1em;
-      cursor: pointer;
-      accent-color: #52c41a; // 绿色主题
-    }
+.statusIcon.statusPending {
+  border: 1px solid #999; // descriptionForeground 的近似值
+  background: transparent;
+}
 
-    // 已完成的任务项
-    &:has(input[type="checkbox"]:checked) {
-      color: #888;
-      text-decoration: line-through;
-    }
-  }
+.statusIcon.statusInProgress {
+  background: #ffdd33; // charts-yellow 的近似值
+}
 
-  // 段落间距
-  p {
-    margin: 0.5em 0;
-  }
+.statusIcon.statusCompleted {
+  background: #89d185; // charts-green 的近似值
+}
+
+.todoContent {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  font-size: 13px;
+  margin-right: 6px;
+  padding: 1px 3px;
+  line-height: 1.4;
+}
+
+.todoContent.statusPending {
+  color: #cccccc; // foreground 的近似值
+}
+
+.todoContent.statusInProgress {
+  color: #ffdd33; // charts-yellow 的近似值
+}
+
+.todoContent.statusCompleted {
+  color: #89d185; // charts-green 的近似值
+}
+
+.markdownFallback {
+  // ReactMarkdown 兜底样式
+  color: #999;
+  font-size: 13px;
 }
