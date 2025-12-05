@@ -38,6 +38,16 @@
   background: #89d185; // charts-green 的近似值
 }
 
+// Emoji 图标样式（用于已完成任务）
+.emojiIcon {
+  display: inline-block;
+  font-size: 14px;
+  margin-right: 6px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 .todoContent {
   flex: 1;
   min-width: 0;
@@ -57,7 +67,7 @@
 }
 
 .todoContent.statusCompleted {
-  color: #89d185; // charts-green 的近似值
+  color: #cccccc; // 已完成任务使用普通文本颜色，不再是绿色
 }
 
 .markdownFallback {

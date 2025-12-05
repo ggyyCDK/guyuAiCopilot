@@ -73,17 +73,27 @@ const ToolUpdateTodoListContent: FC<MessageContentProps> = ({ message }) => {
                 {Array.isArray(normalizedTodos) && normalizedTodos.length > 0 ? (
                     <ul className={styles.todoList}>
                         {normalizedTodos.map((todo, idx) => {
-                            let statusClass = styles.statusPending;
+                            let statusIcon;
+                            let contentClass = styles.todoContent;
+
                             if (todo.status === "completed") {
-                                statusClass = styles.statusCompleted;
+                                // 已完成：显示 ✅ emoji
+                                statusIcon = <span className={styles.emojiIcon}>✅</span>;
+                                contentClass = `${styles.todoContent} ${styles.statusCompleted}`;
                             } else if (todo.status === "in_progress") {
-                                statusClass = styles.statusInProgress;
+                                // 进行中：显示黄色圆点
+                                statusIcon = <span className={`${styles.statusIcon} ${styles.statusInProgress}`} />;
+                                contentClass = `${styles.todoContent} ${styles.statusInProgress}`;
+                            } else {
+                                // 未开始：显示空心圆点
+                                statusIcon = <span className={`${styles.statusIcon} ${styles.statusPending}`} />;
+                                contentClass = `${styles.todoContent} ${styles.statusPending}`;
                             }
 
                             return (
                                 <li key={todo.id || idx} className={styles.todoItem}>
-                                    <span className={`${styles.statusIcon} ${statusClass}`} />
-                                    <span className={`${styles.todoContent} ${statusClass}`}>
+                                    {statusIcon}
+                                    <span className={contentClass}>
                                         {todo.content}
                                     </span>
                                 </li>
