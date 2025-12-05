@@ -48,6 +48,15 @@
   line-height: 1;
 }
 
+// 箭头图标样式（用于进行中任务 - Ant Design Icon）
+.arrowIcon {
+  color: #ffdd33; // 黄色箭头
+  font-size: 14px;
+  margin-right: 6px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
 .todoContent {
   flex: 1;
   min-width: 0;
@@ -63,7 +72,7 @@
 }
 
 .todoContent.statusInProgress {
-  color: #ffdd33; // charts-yellow 的近似值
+  color: #cccccc; // 进行中任务使用普通文本颜色，不再是黄色
 }
 
 .todoContent.statusCompleted {

@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
 import { TodoItem, TodoStatus } from '@/type/tools/todo'
+import { ArrowRightOutlined } from '@ant-design/icons';
 import styles from './index.module.scss';
 
 // 生成基于内容的稳定 ID（简单哈希）
@@ -81,8 +82,8 @@ const ToolUpdateTodoListContent: FC<MessageContentProps> = ({ message }) => {
                                 statusIcon = <span className={styles.emojiIcon}>✅</span>;
                                 contentClass = `${styles.todoContent} ${styles.statusCompleted}`;
                             } else if (todo.status === "in_progress") {
-                                // 进行中：显示黄色圆点
-                                statusIcon = <span className={`${styles.statusIcon} ${styles.statusInProgress}`} />;
+                                // 进行中：显示 Ant Design 箭头图标
+                                statusIcon = <ArrowRightOutlined className={styles.arrowIcon} />;
                                 contentClass = `${styles.todoContent} ${styles.statusInProgress}`;
                             } else {
                                 // 未开始：显示空心圆点
