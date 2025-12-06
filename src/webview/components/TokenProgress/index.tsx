@@ -6,9 +6,17 @@ interface TokenProgressProps {
   current: number;
   limit: number;
   onReset?: () => void;
+  onCompress?: () => void;
+  conversationId?: string;
 }
 
-const TokenProgress: React.FC<TokenProgressProps> = ({ current, limit, onReset }) => {
+const TokenProgress: React.FC<TokenProgressProps> = ({
+  current,
+  limit,
+  onReset,
+  onCompress,
+  conversationId
+}) => {
   const formatLargeNumber = (num: number): string => {
     if (num >= 1e9) {
       return (num / 1e9).toFixed(1) + 'b';
@@ -20,6 +28,15 @@ const TokenProgress: React.FC<TokenProgressProps> = ({ current, limit, onReset }
       return (num / 1e3).toFixed(1) + 'k';
     }
     return num.toString();
+  };
+
+  const handleIconClick = () => {
+    // 优先调用压缩方法
+    if (onCompress && conversationId) {
+      onCompress();
+    } else if (onReset) {
+      onReset();
+    }
   };
 
   const safeTokens = Math.max(0, current);
@@ -42,8 +59,9 @@ const TokenProgress: React.FC<TokenProgressProps> = ({ current, limit, onReset }
           />
         </div>
       </div>
-      <div className={styles.resetButton}>
-        <VerticalAlignMiddleOutlined onClick={onReset} /></div>
+      <div className={styles.resetButton} title="压缩上下文">
+        <VerticalAlignMiddleOutlined onClick={handleIconClick} />
+      </div>
     </div>
   );
 };

@@ -38,3 +38,37 @@ export interface multiRoundTaskParams {
     variableMaps?: Record<string, any>;
     includeFileDetails?: boolean;
 }
+
+/**
+ * 压缩会话上下文请求参数
+ */
+export interface CompressSessionContextParams {
+    sessionId: string;
+    baseUrl?: string;
+    apiKey?: string;
+}
+
+/**
+ * 压缩会话上下文响应数据
+ */
+export interface CompressSessionContextResult {
+    sessionId: string;
+    lastMessageId?: string;
+    compressedUsage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+    };
+}
+
+/**
+ * 压缩会话上下文响应
+ */
+export interface CompressSessionContextResponse {
+    success: boolean;
+    data: {
+        compressedUsage: number;
+        lastMessageId: string
+    } | null;
+    message: string;
+}

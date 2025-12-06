@@ -3,6 +3,7 @@ import { getHtmlForWebview } from './webViewutils';
 import { useIMStore } from './store/imStore/createStore';
 import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
+import { compressSessionContext } from '@/handler'
 
 export interface Message {
   type: string;
@@ -61,6 +62,68 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             } catch (error) {
               vscode.window.showErrorMessage(`无法打开文件: ${path}`);
               console.error('Error opening file:', error);
+            }
+          }
+          break;
+        }
+        case 'compress-context': {
+          // 压缩会话上下文
+          const { conversationId, baseUrl, apiKey } = payload;
+          if (conversationId) {
+            try {
+              vscode.window.showInformationMessage('正在压缩会话上下文...');
+
+              const result = await compressSessionContext({
+                sessionId: conversationId,
+                baseUrl: baseUrl || 'http://127.0.0.1:7001',
+                apiKey
+              });
+              if (result.success && result.data) {
+                const usage = result.data;
+                const compressedUsage = usage?.compressedUsage || 0;
+
+                // 向 webview 发送更新 tokens 的消息
+                if (this._view) {
+                  this._view.webview.postMessage({
+                    type: 'update-tokens',
+                    payload: {
+                      totalTokens: compressedUsage
+                    }
+                  });
+
+                  // 发送压缩完成消息
+                  this._view.webview.postMessage({
+                    type: 'compress-complete',
+                    payload: {}
+                  });
+                }
+
+                vscode.window.showInformationMessage(
+                  `压缩成功！压缩后的token大小: ${compressedUsage}`
+                );
+                console.log('压缩结果:', result.data);
+              } else {
+                vscode.window.showWarningMessage(`压缩失败: ${result.message}`);
+
+                // 压缩失败也要重置状态
+                if (this._view) {
+                  this._view.webview.postMessage({
+                    type: 'compress-complete',
+                    payload: {}
+                  });
+                }
+              }
+            } catch (error: any) {
+              vscode.window.showErrorMessage(`压缩上下文失败: ${error.message}`);
+              console.error('压缩上下文错误:', error);
+
+              // 压缩失败也要重置状态
+              if (this._view) {
+                this._view.webview.postMessage({
+                  type: 'compress-complete',
+                  payload: {}
+                });
+              }
             }
           }
           break;

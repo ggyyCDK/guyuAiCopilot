@@ -31,7 +31,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [isComposing, setIsComposing] = useState<boolean>(false);
-  const { chatMessages, chatLoading, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
+
+  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
   const { containerRef, shouldAutoScroll } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
 
@@ -121,6 +122,26 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           todoList: payload.todoList || []
         });
         break;
+
+      case 'compress-complete':
+        // 压缩完成
+        useIMStore.setState({ compressing: false });
+
+        // 添加压缩成功的消息
+        const successMsgId = `${new Date().getTime()}_compress_success`;
+        const successMessage: ChatMessage = {
+          msgId: successMsgId,
+          sender: {
+            targetId: 'llm'
+          },
+          status: MessageStatus.Complete,
+          sendTime: new Date().getTime(),
+          type: MessageType.Text,
+          content: '✅ 上下文压缩成功',
+          ext: {}
+        };
+        mergeMessages([successMessage]);
+        break;
     }
   };
   console.log('todoList is', todoList)
@@ -188,6 +209,39 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     setIsComposing(false);
   };
 
+  // 处理压缩上下文
+  const handleCompressContext = () => {
+    console.log('开始压缩上下文，conversationId:', conversationId);
+
+    // 设置压缩状态为 true
+    useIMStore.setState({ compressing: true });
+
+    // 添加一条系统消息：上下文压缩中...
+    const compressingMsgId = `${new Date().getTime()}_compressing`;
+
+    const compressingMessage: ChatMessage = {
+      msgId: compressingMsgId,
+      sender: {
+        targetId: 'llm'
+      },
+      status: MessageStatus.Complete,
+      sendTime: new Date().getTime(),
+      type: MessageType.Text,
+      content: '🔄 上下文压缩中...',
+      ext: {}
+    };
+    mergeMessages([compressingMessage]);
+
+    vscode.postMessage({
+      type: 'compress-context',
+      payload: {
+        conversationId: conversationId,
+        baseUrl: 'http://127.0.0.1:7001',
+        apiKey: ak
+      }
+    });
+  };
+
   const renderLLMMessage = (message: ChatMessage, index: number) => {
     // const isUserMessage = ChatMessageUtils.isUserMessage(message);
 
@@ -241,7 +295,12 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 {configSummaries.map((item) => (
                   <div key={item.label} className={styles.configSummaryPill}>
                     {item.type === 'progress' ? (
-                      <TokenProgress current={totalTokens} limit={TOKEN_LIMIT} />
+                      <TokenProgress
+                        current={totalTokens}
+                        limit={TOKEN_LIMIT}
+                        conversationId={conversationId}
+                        onCompress={handleCompressContext}
+                      />
                     ) : (
                       <>
                         <span>{item.label}</span>
@@ -297,7 +356,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
                 autoSize={{ minRows: 3, maxRows: 6 }}
-                disabled={chatLoading}
+                disabled={chatLoading || compressing}
                 className={styles.questionInput}
               />
             </div>

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import { ApiRequestParams, EventType, ParseResult } from '@/type/imType/aiRequest'
+import { ApiRequestParams, EventType, ParseResult, CompressSessionContextParams, CompressSessionContextResponse } from '@/type/imType/aiRequest'
 import { safetyParse } from '@/utils/parse'
 import { typewriter } from '@/utils/llmUtils/typewriter'
 import { throttle } from 'lodash'
@@ -233,3 +233,40 @@ export const attemptApiRequestTypeWriter = async function* (command: ApiRequestP
 
   await typewriterPromise
 }
+
+/**
+ * 压缩会话上下文
+ * @param params 压缩参数
+ * @returns 压缩结果
+ */
+export const compressSessionContext = async (
+  params: CompressSessionContextParams
+): Promise<CompressSessionContextResponse> => {
+  const { sessionId, baseUrl, apiKey } = params;
+  const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '');
+  const requestUrl = `${requestBaseUrl}/api/v1/agent/compress-context`;
+
+  try {
+    const response = await axios.post(requestUrl, {
+      sessionId,
+      apiKey
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.success) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } else {
+      throw new Error(response.data.message || '压缩失败');
+    }
+  } catch (error: any) {
+    console.error('压缩会话上下文失败:', error);
+    throw new Error(error.response?.data?.message || error.message || '压缩会话上下文失败');
+  }
+};
