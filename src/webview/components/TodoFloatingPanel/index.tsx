@@ -32,7 +32,7 @@ const TodoFloatingPanel: React.FC<TodoFloatingPanelProps> = ({ todoList }) => {
                     </>
                 ) : (
                     <>
-                        <span>📋 待办 ({todoList.length})</span>
+                        <span>📋 当前待办 ({todoList.length})</span>
                     </>
                 )}
                 <span className={styles.toggleIcon}>{todoExpanded ? '▼' : '▶'}</span>
