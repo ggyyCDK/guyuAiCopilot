@@ -13,21 +13,10 @@ interface MessageContentProps {
 const ToolReplaceInFileContent: FC<MessageContentProps> = ({ message }) => {
     const { params } = message.content
 
-    const handleFileClick = (path: string) => {
-        const vscode = (window as any).vscode;
-        if (vscode) {
-            vscode.postMessage({
-                type: 'open-file',
-                payload: { path }
-            });
-        }
-    };
-
     return <ContentContainer title='编辑文件'>
-        <PathCard 
-            path={params.path} 
+        <PathCard
+            path={params.path}
             icon={<SwapOutlined />}
-            onClick={() => handleFileClick(params.path)}
         />
     </ContentContainer>
 }
