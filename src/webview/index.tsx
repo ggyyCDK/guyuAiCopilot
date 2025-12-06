@@ -386,7 +386,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 className={styles.questionInput}
               />
               <div
-                className={styles.sendButton}
+                className={`${styles.sendButton} ${(!chatLoading && !question.trim()) ? styles.sendButtonDisabled : ''}`}
                 onClick={chatLoading ? handleCancel : handleSend}
                 title={chatLoading ? "停止生成" : "发送消息"}
               >

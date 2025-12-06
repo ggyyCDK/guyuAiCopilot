@@ -192,6 +192,12 @@ textarea::placeholder {
         color: #fff;
         background: rgba(255, 255, 255, 0.1);
     }
+
+    &.sendButtonDisabled {
+        cursor: not-allowed;
+        opacity: 0.3;
+        pointer-events: none;
+    }
 }
 
 /* 配置输入框容器 */
