@@ -87,7 +87,8 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
         'Content-Type': 'application/json',
         'x-ak': ak ?? ''
       },
-      responseType: 'stream'
+      responseType: 'stream',
+      signal: command.signal
     })
 
     const stream = response.data as Readable
@@ -136,8 +137,12 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
 
     })
   } catch (error) {
-    // handleIntervalMessage()
-    // onError?.(error)
+    if (axios.isCancel(error)) {
+      console.log('Request canceled');
+      onComplete?.({ segmentContent: '', content });
+    } else {
+      onError?.(error);
+    }
   } finally {
     throttleOnMessage.cancel()
     if (!streamClosed) {

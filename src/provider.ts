@@ -4,6 +4,7 @@ import { useIMStore } from './store/imStore/createStore';
 import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
 import { compressSessionContext } from '@/handler'
+import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 
 export interface Message {
   type: string;
@@ -124,6 +125,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                   payload: {}
                 });
               }
+            }
+          }
+          break;
+        }
+        case 'cancel-chat': {
+          // 取消对话
+          if (multiRoundSharedState.abortController) {
+            multiRoundSharedState.abortController.abort();
+            multiRoundSharedState.abort = true;
+            // vscode.window.showInformationMessage('对话已取消');
+
+            // 通知前端对话已取消
+            if (this._view) {
+              this._view.webview.postMessage({
+                type: 'chat-canceled',
+                payload: {}
+              });
+
+              this._view.webview.postMessage({
+                type: 'update-loading',
+                payload: { chatLoading: false }
+              });
             }
           }
           break;

@@ -6,16 +6,14 @@ import { transformServerMessage } from '@/utils/llmRequest/transformServerMessag
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
-import { SettingOutlined } from '@ant-design/icons'
+import { SettingOutlined, SendOutlined, PoweroffOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
 import TokenProgress from './components/TokenProgress'
 import TodoFloatingPanel from './components/TodoFloatingPanel'
 import styles from './index.module.scss';
-
 interface ISidebarProps { }
-
 const vscode = (window as any).acquireVsCodeApi();
 // 将 vscode 实例挂载到 window 对象，供其他组件使用
 (window as any).vscode = vscode;
@@ -91,6 +89,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
     switch (type) {
       case 'stream-data':
+        // 如果当前不在 loading 状态（比如用户取消了），则不接收流式数据
+        if (!useIMStore.getState().chatLoading) {
+          return;
+        }
         const { serverMessageList } = payload
         mergeMessages(serverMessageList.map(transformServerMessage))
         break;
@@ -141,6 +143,22 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           ext: {}
         };
         mergeMessages([successMessage]);
+        break;
+
+      case 'chat-canceled':
+        const canceledMsgId = `${new Date().getTime()}_canceled`;
+        const canceledMessage: ChatMessage = {
+          msgId: canceledMsgId,
+          sender: {
+            targetId: 'llm'
+          },
+          status: MessageStatus.Complete,
+          sendTime: new Date().getTime(),
+          type: MessageType.Text,
+          content: '🚫 对话已取消',
+          ext: {}
+        };
+        mergeMessages([canceledMessage]);
         break;
     }
   };
@@ -240,6 +258,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         apiKey: ak
       }
     });
+  };
+
+  const handleCancel = () => {
+    vscode.postMessage({
+      type: 'cancel-chat',
+      payload: {}
+    });
+    useIMStore.setState({ chatLoading: false });
   };
 
   const renderLLMMessage = (message: ChatMessage, index: number) => {
@@ -359,6 +385,13 @@ const Sidebar: React.FC<ISidebarProps> = () => {
                 disabled={chatLoading || compressing}
                 className={styles.questionInput}
               />
+              <div
+                className={styles.sendButton}
+                onClick={chatLoading ? handleCancel : handleSend}
+                title={chatLoading ? "停止生成" : "发送消息"}
+              >
+                {chatLoading ? <PoweroffOutlined /> : <SendOutlined />}
+              </div>
             </div>
           </>
         ) : (

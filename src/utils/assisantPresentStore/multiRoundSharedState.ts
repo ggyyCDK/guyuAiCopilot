@@ -22,6 +22,7 @@ interface MultiRoundSharedState {
 
     // webview 引用，用于向前端发送消息
     webviewView?: vscode.WebviewView;
+    abortController?: AbortController | null;
 }
 
 

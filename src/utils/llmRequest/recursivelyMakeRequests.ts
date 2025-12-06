@@ -60,6 +60,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         conversationId,
         variableMaps,
         baseUrl,
+        signal: multiRoundSharedState.abortController?.signal,
         onUsage: (usage) => {
             // 解析usage数据并发送到webview
             try {
@@ -102,6 +103,10 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         // console.log('循环内助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
 
     }
+    if (multiRoundSharedState.abort) {
+        return true;
+    }
+
     console.log('助手消息处理完毕', multiRoundSharedState.assistantMessageContent)
     multiRoundSharedState.didCompleteReadingStream = true;
     // 将所有块设置为完成状态，以允许 presentAssistantMessage 完成并将 userMessageContentReady 设置为 true
@@ -110,7 +115,6 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
     partialBlocks.forEach((block) => {
         block.partial = false
     })
-    // this.assistantMessageContent.forEach((e) => (e.partial = false)) // 不能直接这样做，因为工具可能正在执行中
     if (partialBlocks.length > 0) {
         presentAssistantMessage() // 如果有内容需要更新，它将完成并将 this.userMessageContentReady 更新为 true，我们在发出下一个请求之前会等待它。这实际上只是呈现我们刚刚设置为完成的最后一条部分消息
     }

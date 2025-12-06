@@ -15,6 +15,7 @@ export interface ApiRequestParams {
     onComplete?: (message: IMessageResult) => void;
     onError?: (error: any) => void;
     onUsage?: (usage: any) => void;
+    signal?: AbortSignal;
 }
 
 export enum EventType {
