@@ -99,7 +99,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
       stream.on('data', (chunk: Buffer) => {
         const dataPayload = chunk.toString()
         const message = safetyParse(dataPayload) as ParseResult
-        console.log('out message is:', message)
+        // console.log('out message is:', message)
         switch (message?.eventType) {
           case EventType.Message: {
             const segment = message.content || ''
@@ -306,3 +306,37 @@ export const fetchSessionList = async (pwd: string, baseUrl?: string) => {
     throw new Error(error.response?.data?.message || error.message || '获取会话列表失败');
   }
 };
+
+/**
+ * 保存会话消息
+ * @param params 保存参数
+ * @returns 保存结果
+ */
+export const saveChatMessage = async (
+  params: { sessionId: string, message: any, baseUrl?: string }
+) => {
+  const { sessionId, message, baseUrl } = params;
+  const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '');
+  const requestUrl = `${requestBaseUrl}/api/v1/agent/save-chatmessages`;
+
+  try {
+    const response = await axios.post(requestUrl, {
+      sessionId,
+      chatMessage: message
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('保存消息 response is:', response)
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || '保存消息失败');
+    }
+  } catch (error: any) {
+    console.error('保存消息失败:', error);
+    throw new Error(error.response?.data?.message || error.message || '保存消息失败');
+  }
+};
+

@@ -3,7 +3,7 @@ import { getHtmlForWebview } from './webViewutils';
 import { useIMStore } from './store/imStore/createStore';
 import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
-import { compressSessionContext, getWorkspaceCwd, fetchSessionList } from '@/handler'
+import { compressSessionContext, getWorkspaceCwd, fetchSessionList, saveChatMessage } from '@/handler'
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 
 export interface Message {
@@ -167,6 +167,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             }
           } catch (error: any) {
             vscode.window.showErrorMessage(`获取会话列表失败: ${error.message}`);
+          }
+          break;
+        }
+        case 'save-chat-message': {
+          console.log('save-chat-message', payload)
+          const { sessionId, message, baseUrl } = payload;
+          try {
+            await saveChatMessage({
+              sessionId,
+              message,
+              baseUrl
+            });
+          } catch (error: any) {
+            console.error('保存消息失败:', error);
           }
           break;
         }

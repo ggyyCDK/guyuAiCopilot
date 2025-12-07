@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ReactDom from 'react-dom';
 import { useIMStore } from '@/store/imStore/createStore'
 import { ChatMessage, MessageStatus, MessageType } from '@/type/imType/im'
-import { transformServerMessage } from '@/utils/llmRequest/transformServerMessage'
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
@@ -15,6 +14,7 @@ import TokenProgress from './components/TokenProgress'
 import TodoFloatingPanel from './components/TodoFloatingPanel'
 import styles from './index.module.scss';
 import { createProviderMessageHandler } from './providerHandler';
+import { useSyncChatMessage } from '@/hooks/useSyncChatMessage'
 interface ISidebarProps { }
 const vscode = (window as any).acquireVsCodeApi();
 // 将 vscode 实例挂载到 window 对象，供其他组件使用
@@ -51,6 +51,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     };
   }, []);
 
+  // 同步消息至数据库
+  useSyncChatMessage(conversationId)
+
   useEffect(() => {
     if (!lastMessage) {
       return
@@ -83,7 +86,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       console.warn('保存本地配置失败', error);
     }
   }, [ak, apiUrl]);
-  console.log('todoList is', todoList)
+
   const nextId = () => {
     return `${new Date().getTime()}_${uniqueId()}`
   }
@@ -218,8 +221,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       }
     ]
   }, [ak, apiUrl])
-
-  console.log(chatMessages, 'chatMessages666')
+  console.log('chatmessage is:', chatMessages)
   return (
     <>
       <div className={styles.aiLayout}>
