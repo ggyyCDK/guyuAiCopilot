@@ -25,12 +25,12 @@ import { cloneDeep } from 'lodash';
  * 3. 根据内容类型（文本/工具使用）进行相应处理
  * 4. 管理消息展示的状态和流程控制
  * 
- * @throws {Error} 当 Dalaran 实例被中止时抛出错误
+ * @throws {Error} 当 schooberAi 实例被中止时抛出错误
  */
 export const presentAssistantMessage = async function () {
     // 检查是否已中止操作
     if (multiRoundSharedState.abort) {
-        throw new Error('Dalaran instance aborted');
+        throw new Error('schooberAi instance aborted');
     }
 
     // 检查是否已被锁定，如果是则标记有待处理的更新并返回
