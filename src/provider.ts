@@ -3,7 +3,7 @@ import { getHtmlForWebview } from './webViewutils';
 import { useIMStore } from './store/imStore/createStore';
 import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
-import { compressSessionContext } from '@/handler'
+import { compressSessionContext, getWorkspaceCwd, fetchSessionList } from '@/handler'
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 
 export interface Message {
@@ -148,6 +148,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 payload: { chatLoading: false }
               });
             }
+          }
+          break;
+        }
+        case 'get-session-list': {
+          const { baseUrl } = payload;
+          const pwd = getWorkspaceCwd();
+          try {
+            const sessionList = await fetchSessionList(pwd, baseUrl);
+            if (this._view) {
+              this._view.webview.postMessage({
+                type: 'update-session-list',
+                payload: {
+                  sessionList
+                }
+              });
+            }
+          } catch (error: any) {
+            vscode.window.showErrorMessage(`获取会话列表失败: ${error.message}`);
           }
           break;
         }

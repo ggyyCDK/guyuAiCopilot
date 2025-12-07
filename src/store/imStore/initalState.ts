@@ -1,4 +1,4 @@
-import { ChatConversation, ChatMessage } from "@/type/imType/im";
+import { ChatConversation, ChatMessage, AiSession } from "@/type/imType/im";
 import { TodoItem } from '@/type/tools/todo'
 
 export interface IMState {
@@ -7,6 +7,8 @@ export interface IMState {
     compressing: boolean; //是否正在压缩上下文
     totalTokens: number; //累积的token数
     todoList: TodoItem[],
+    pwd: string; //当前工作区路径
+    sessionList: AiSession[]; //会话列表
 }
 
 export const initialIMState: IMState = {
@@ -14,5 +16,7 @@ export const initialIMState: IMState = {
     todoList: [],
     chatLoading: false,
     compressing: false,
-    totalTokens: 0
+    totalTokens: 0,
+    pwd: '',
+    sessionList: []
 }

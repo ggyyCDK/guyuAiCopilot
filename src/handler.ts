@@ -24,7 +24,7 @@ function getWorkspaceRootPath() {
   return '';
 }
 
-function getWorkspaceCwd() {
+export function getWorkspaceCwd() {
   const folders = vscode.workspace.workspaceFolders;
   if (folders && folders.length > 0) {
     return folders[0].uri.fsPath;
@@ -274,5 +274,35 @@ export const compressSessionContext = async (
   } catch (error: any) {
     console.error('压缩会话上下文失败:', error);
     throw new Error(error.response?.data?.message || error.message || '压缩会话上下文失败');
+  }
+};
+
+/**
+ * 获取会话列表
+ * @param pwd 当前工作目录
+ * @param baseUrl API基础地址
+ * @returns 会话列表
+ */
+export const fetchSessionList = async (pwd: string, baseUrl?: string) => {
+  const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '');
+  const requestUrl = `${requestBaseUrl}/api/v1/agent/get-session-list-by-pwd`;
+  console.log(requestUrl, 'requestUrl')
+  try {
+    const response = await axios.post(requestUrl, {
+      pwd
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('历史会话 response is:', response)
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message || '获取会话列表失败');
+    }
+  } catch (error: any) {
+    console.error('获取会话列表失败:', error);
+    throw new Error(error.response?.data?.message || error.message || '获取会话列表失败');
   }
 };

@@ -6,10 +6,11 @@ import { transformServerMessage } from '@/utils/llmRequest/transformServerMessag
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
-import { SettingOutlined, SendOutlined, PoweroffOutlined } from '@ant-design/icons'
+import { SettingOutlined, SendOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
+import HistoryPanel from './components/HistoryPanel'
 import TokenProgress from './components/TokenProgress'
 import TodoFloatingPanel from './components/TodoFloatingPanel'
 import styles from './index.module.scss';
@@ -21,7 +22,7 @@ const vscode = (window as any).acquireVsCodeApi();
 
 const SETTINGS_STORAGE_KEY = 'schoober-ai-settings';
 
-type ViewMode = 'chat' | 'settings';
+type ViewMode = 'chat' | 'settings' | 'history';
 
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [error, setError] = useState<string>('');
@@ -31,7 +32,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
-  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
+  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage, initData } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
 
@@ -41,7 +42,10 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   }, [])
   useEffect(() => {
     const providerMessageHandler = createProviderMessageHandler(setError);
+
     window.addEventListener('message', providerMessageHandler);
+    initData();
+
     return () => {
       window.removeEventListener('message', providerMessageHandler);
     };
@@ -225,11 +229,22 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               <div className={styles.appTitle}>✨ SchooberAi</div>
               <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
             </div>
-            <div
-              className={styles.setting}
-              onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
-            >
-              {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
+            <div className={styles.actionButtons}>
+              <div
+                className={styles.setting}
+                onClick={() => setViewMode(viewMode === 'chat' ? 'history' : 'chat')}
+                title="历史对话"
+                style={{ marginRight: '12px' }}
+              >
+                {viewMode === 'chat' ? <HistoryOutlined /> : null}
+              </div>
+              <div
+                className={styles.setting}
+                onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
+                title="设置"
+              >
+                {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
+              </div>
             </div>
           </div>
           {viewMode === 'chat' && (
@@ -311,12 +326,16 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               </div>
             </div>
           </>
-        ) : (
+        ) : viewMode === 'settings' ? (
           <SettingsPanel
             ak={ak}
             apiUrl={apiUrl}
             onAkChange={setAk}
             onApiUrlChange={setApiUrl}
+            onBack={() => setViewMode('chat')}
+          />
+        ) : (
+          <HistoryPanel
             onBack={() => setViewMode('chat')}
           />
         )}

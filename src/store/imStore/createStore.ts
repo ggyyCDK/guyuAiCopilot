@@ -1,9 +1,10 @@
 import { createWithEqualityFn } from 'zustand/traditional'
 import { shallow } from 'zustand/shallow'
 import { IMState, initialIMState } from './initalState'
-import { ChatMessage } from "@/type/imType/im";
+import { ChatMessage, AiSession } from "@/type/imType/im";
 import { TodoItem } from '@/type/tools/todo'
 import { merge } from 'lodash'
+
 
 interface Action {
     //合并消息
@@ -11,8 +12,14 @@ interface Action {
     //获取最后一条消息
     getLastMessage: () => ChatMessage | undefined
     //更新待办事项列表
+    //更新待办事项列表
     setTodoList: (todoList: TodoItem[]) => void
-
+    //设置当前工作区路径
+    setPwd: (pwd: string) => void
+    //设置会话列表
+    setSessionList: (sessionList: AiSession[]) => void
+    //初始化数据
+    initData: () => void
 }
 
 export type Store = IMState & Action
@@ -40,6 +47,15 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
     },
     setTodoList: (todoList: TodoItem[]) => {
         set({ todoList });
+    },
+    setPwd: (pwd: string) => {
+        set({ pwd });
+    },
+    setSessionList: (sessionList: AiSession[]) => {
+        set({ sessionList });
+    },
+    initData: () => {
+
     },
     shallow
 }))

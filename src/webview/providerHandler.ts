@@ -46,6 +46,15 @@ export const createProviderMessageHandler = (setError: (error: string) => void) 
                 });
                 break;
 
+            //获取当前待办工作区
+            case 'set-pwd':
+                useIMStore.getState().setPwd(payload.cwd);
+                break;
+
+            case 'update-session-list':
+                useIMStore.getState().setSessionList(payload.sessionList || []);
+                break;
+
             case 'compress-complete':
                 // 压缩完成
                 useIMStore.setState({ compressing: false });

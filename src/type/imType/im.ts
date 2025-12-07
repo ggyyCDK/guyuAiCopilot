@@ -31,3 +31,13 @@ export interface ChatMessage<T = any> {
     workerId?: number;
     ext: any
 }
+
+export interface AiSession {
+    id: string;
+    workerId: string;
+    businessType?: string;
+    name?: string;
+    curPwd?: string;
+    createDate: string;
+    ext?: any;
+}
