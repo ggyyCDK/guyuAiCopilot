@@ -67,10 +67,11 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
   const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '')
   const requestUrl = `${requestBaseUrl}/api/v1/agent/run`
   const currentCwd = getWorkspaceCwd()
-
+  const sessionTitle = question[0].text
   try {
     const response = await axios.post(requestUrl, {
       sessionId: conversationId,
+      sessionTitle,
       workerId,
       variableMaps: {
         llmConfig: {
