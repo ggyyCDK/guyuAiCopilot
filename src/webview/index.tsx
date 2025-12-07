@@ -13,6 +13,7 @@ import SettingsPanel from './components/SettingsPanel'
 import TokenProgress from './components/TokenProgress'
 import TodoFloatingPanel from './components/TodoFloatingPanel'
 import styles from './index.module.scss';
+import { createProviderMessageHandler } from './providerHandler';
 interface ISidebarProps { }
 const vscode = (window as any).acquireVsCodeApi();
 // 将 vscode 实例挂载到 window 对象，供其他组件使用
@@ -31,7 +32,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
   const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage } = useIMStore()
-  const { containerRef, shouldAutoScroll } = useAutoScroll([chatMessages])
+  const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
 
   // 为当前会话窗口生成唯一的 conversationId，在组件生命周期内保持不变
@@ -39,6 +40,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     return `conversation_${new Date().getTime()}_${uniqueId()}`
   }, [])
   useEffect(() => {
+    const providerMessageHandler = createProviderMessageHandler(setError);
     window.addEventListener('message', providerMessageHandler);
     return () => {
       window.removeEventListener('message', providerMessageHandler);
@@ -77,91 +79,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       console.warn('保存本地配置失败', error);
     }
   }, [ak, apiUrl]);
-
-  /**
-   * 处理 provider 发送过来的请求
-   * @param event
-   * @returns
-   */
-  const providerMessageHandler = function (event: any) {
-    const data = event.data;
-    const { type, payload } = data;
-
-    switch (type) {
-      case 'stream-data':
-        // 如果当前不在 loading 状态（比如用户取消了），则不接收流式数据
-        if (!useIMStore.getState().chatLoading) {
-          return;
-        }
-        const { serverMessageList } = payload
-        mergeMessages(serverMessageList.map(transformServerMessage))
-        break;
-
-      case 'update-loading':
-        // 更新 loading 状态
-        useIMStore.setState({
-          chatLoading: payload.chatLoading
-        });
-        break;
-
-      case 'update-tokens':
-        // 更新为最新的 token 数（不是累加）
-        const { totalTokens: newTokens } = payload;
-        useIMStore.setState({
-          totalTokens: newTokens
-        });
-        break;
-
-      case 'stream-error':
-        console.error('Stream error:', payload.error);
-        setError(payload.error);
-        break;
-
-      case 'update-todo-list':
-        // 更新待办事项列表
-        console.log('更新待办事项列表 is', todoList)
-        useIMStore.setState({
-          todoList: payload.todoList || []
-        });
-        break;
-
-      case 'compress-complete':
-        // 压缩完成
-        useIMStore.setState({ compressing: false });
-
-        // 添加压缩成功的消息
-        const successMsgId = `${new Date().getTime()}_compress_success`;
-        const successMessage: ChatMessage = {
-          msgId: successMsgId,
-          sender: {
-            targetId: 'llm'
-          },
-          status: MessageStatus.Complete,
-          sendTime: new Date().getTime(),
-          type: MessageType.Text,
-          content: '✅ 上下文压缩成功',
-          ext: {}
-        };
-        mergeMessages([successMessage]);
-        break;
-
-      case 'chat-canceled':
-        const canceledMsgId = `${new Date().getTime()}_canceled`;
-        const canceledMessage: ChatMessage = {
-          msgId: canceledMsgId,
-          sender: {
-            targetId: 'llm'
-          },
-          status: MessageStatus.Complete,
-          sendTime: new Date().getTime(),
-          type: MessageType.Text,
-          content: '🚫 对话已取消',
-          ext: {}
-        };
-        mergeMessages([canceledMessage]);
-        break;
-    }
-  };
   console.log('todoList is', todoList)
   const nextId = () => {
     return `${new Date().getTime()}_${uniqueId()}`
