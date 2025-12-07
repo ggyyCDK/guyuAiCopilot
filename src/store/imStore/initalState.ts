@@ -9,6 +9,7 @@ export interface IMState {
     todoList: TodoItem[],
     pwd: string; //当前工作区路径
     sessionList: AiSession[]; //会话列表
+    conversationId: string; //当前会话ID
 }
 
 export const initialIMState: IMState = {
@@ -18,5 +19,6 @@ export const initialIMState: IMState = {
     compressing: false,
     totalTokens: 0,
     pwd: '',
-    sessionList: []
+    sessionList: [],
+    conversationId: ''
 }

@@ -90,6 +90,23 @@ export const createProviderMessageHandler = (setError: (error: string) => void) 
                 };
                 mergeMessages([canceledMessage]);
                 break;
+
+            case 'update-chat-history':
+                const { sessionId, messages } = payload;
+                // 更新 store 中的消息和 conversationId
+                useIMStore.setState({
+                    chatMessages: messages || [],
+                    conversationId: messages[0].conversationId
+                });
+
+                // 切换回聊天界面，这通常需要在组件层控制，或者通过 store 状态控制 viewMode
+                // 假设有一个 setViewMode 的 action 或者通过 postMessage 通知 index.tsx 切换
+                // 这里我们通过 window.postMessage 发送一个本地消息给 index.tsx 处理视图切换
+                window.postMessage({
+                    type: 'switch-view',
+                    payload: { view: 'chat', conversationId: sessionId }
+                }, '*');
+                break;
         }
     };
 };

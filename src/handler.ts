@@ -340,3 +340,36 @@ export const saveChatMessage = async (
   }
 };
 
+/**
+ * 获取会话消息列表
+ * @param params 获取参数
+ * @returns 消息列表
+ */
+export const getChatMessages = async (
+  params: { sessionId: string, baseUrl?: string }
+) => {
+  const { sessionId, baseUrl } = params;
+  const requestBaseUrl = (baseUrl || defaultBaseUrl).replace(/\/$/, '');
+  const requestUrl = `${requestBaseUrl}/api/v1/agent/get-chatmessages`;
+  console.log('getChatMessages is:', sessionId, requestUrl)
+  try {
+    const response = await axios.get(requestUrl, {
+      params: {
+        sessionId
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('getChatMessages response is:', response)
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message || '获取消息列表失败');
+    }
+  } catch (error: any) {
+    console.error('获取消息列表失败:', error);
+    throw new Error(error.response?.data?.message || error.message || '获取消息列表失败');
+  }
+};
+

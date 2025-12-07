@@ -69,7 +69,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ onBack, conversationId }) =
             ) : (
                 <div className={styles.historyList}>
                     {sessionList.map((session) => (
-                        <div key={session.id} className={styles.historyCard}>
+                        <div
+                            key={session.id}
+                            className={styles.historyCard}
+                            onClick={() => {
+                                if ((window as any).vscode) {
+                                    (window as any).vscode.postMessage({
+                                        type: 'fetch-chat-history',
+                                        payload: {
+                                            sessionId: session.id,
+                                            baseUrl: 'http://127.0.0.1:7001'
+                                        }
+                                    });
+                                }
+                            }}
+                        >
                             <div className={styles.cardHeader}>
                                 <div className={styles.cardTitle}>{session.name || '未命名会话'}</div>
                                 <div className={styles.cardDate}>{formatDate(session.createDate)}</div>

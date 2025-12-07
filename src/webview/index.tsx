@@ -32,22 +32,33 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
-  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage, initData } = useIMStore()
+  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage, initData, conversationId } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
 
-  // 为当前会话窗口生成唯一的 conversationId，在组件生命周期内保持不变
-  const conversationId = useMemo(() => {
-    return `conversation_${new Date().getTime()}_${uniqueId()}`
-  }, [])
   useEffect(() => {
     const providerMessageHandler = createProviderMessageHandler(setError);
 
     window.addEventListener('message', providerMessageHandler);
+
+    // 监听本地消息用于切换视图
+    const handleLocalMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'switch-view') {
+        const { view, conversationId: newConversationId } = event.data.payload;
+        setViewMode(view);
+        // 如果需要更新 conversationId，可能需要一种方式来通知组件或者 store
+        // 由于 conversationId 是 useMemo 生成的，这里直接修改可能不生效，
+        // 除非我们将 conversationId 放入 store 或者 state 中管理
+        // 目前简单实现切换视图
+      }
+    };
+    window.addEventListener('message', handleLocalMessage);
+
     initData();
 
     return () => {
       window.removeEventListener('message', providerMessageHandler);
+      window.removeEventListener('message', handleLocalMessage);
     };
   }, []);
 

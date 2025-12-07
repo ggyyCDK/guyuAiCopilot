@@ -3,7 +3,7 @@ import { shallow } from 'zustand/shallow'
 import { IMState, initialIMState } from './initalState'
 import { ChatMessage, AiSession } from "@/type/imType/im";
 import { TodoItem } from '@/type/tools/todo'
-import { merge } from 'lodash'
+import { merge, uniqueId } from 'lodash'
 
 
 interface Action {
@@ -18,6 +18,8 @@ interface Action {
     setPwd: (pwd: string) => void
     //设置会话列表
     setSessionList: (sessionList: AiSession[]) => void
+    //设置当前会话ID
+    setConversationId: (conversationId: string) => void
     //初始化数据
     initData: () => void
 }
@@ -54,8 +56,12 @@ export const useIMStore = createWithEqualityFn<Store>((set, get) => ({
     setSessionList: (sessionList: AiSession[]) => {
         set({ sessionList });
     },
+    setConversationId: (conversationId: string) => {
+        set({ conversationId });
+    },
     initData: () => {
-
+        const conversationId = `conversation_${new Date().getTime()}_${uniqueId()}`
+        set({ conversationId })
     },
     shallow
 }))

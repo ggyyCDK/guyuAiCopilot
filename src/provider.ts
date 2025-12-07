@@ -3,7 +3,7 @@ import { getHtmlForWebview } from './webViewutils';
 import { useIMStore } from './store/imStore/createStore';
 import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
-import { compressSessionContext, getWorkspaceCwd, fetchSessionList, saveChatMessage } from '@/handler'
+import { compressSessionContext, getWorkspaceCwd, fetchSessionList, saveChatMessage, getChatMessages } from '@/handler'
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 
 export interface Message {
@@ -181,6 +181,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             });
           } catch (error: any) {
             console.error('保存消息失败:', error);
+          }
+          break;
+        }
+        case 'fetch-chat-history': {
+          const { sessionId, baseUrl } = payload;
+          try {
+            const messages = await getChatMessages({
+              sessionId,
+              baseUrl
+            });
+
+            if (this._view) {
+              this._view.webview.postMessage({
+                type: 'update-chat-history',
+                payload: {
+                  sessionId,
+                  messages
+                }
+              });
+            }
+          } catch (error: any) {
+            vscode.window.showErrorMessage(`获取历史消息失败: ${error.message}`);
           }
           break;
         }
