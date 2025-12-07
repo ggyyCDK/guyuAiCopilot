@@ -152,15 +152,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case 'get-session-list': {
-          const { baseUrl } = payload;
+          const { baseUrl, conversationId } = payload;
           const pwd = getWorkspaceCwd();
           try {
             const sessionList = await fetchSessionList(pwd, baseUrl);
             if (this._view) {
+              console.log('conversationId is', conversationId)
               this._view.webview.postMessage({
                 type: 'update-session-list',
                 payload: {
-                  sessionList
+                  sessionList: sessionList.filter(item => item.id !== conversationId)
                 }
               });
             }

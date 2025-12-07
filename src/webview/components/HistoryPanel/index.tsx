@@ -5,9 +5,10 @@ import { useIMStore } from '@/store/imStore/createStore';
 
 interface HistoryPanelProps {
     onBack: () => void;
+    conversationId: string;
 }
 
-const HistoryPanel: React.FC<HistoryPanelProps> = ({ onBack }) => {
+const HistoryPanel: React.FC<HistoryPanelProps> = ({ onBack, conversationId }) => {
     const { sessionList } = useIMStore();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
@@ -24,6 +25,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ onBack }) => {
                     (window as any).vscode.postMessage({
                         type: 'get-session-list',
                         payload: {
+                            conversationId,
                             baseUrl: 'http://127.0.0.1:7001'
                         }
                     });

@@ -336,6 +336,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           />
         ) : (
           <HistoryPanel
+            conversationId={conversationId}
             onBack={() => setViewMode('chat')}
           />
         )}
