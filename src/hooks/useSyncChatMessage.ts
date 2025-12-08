@@ -33,7 +33,15 @@ export const useSyncChatMessage = (conversationId: string) => {
         const lastMessage = chatMessages.at(-1);
         if (!lastMessage) return;
         try {
-            if (ChatMessageUtils.isCompletedMessage(lastMessage)) {
+            if (ChatMessageUtils.isCompletedMessage(lastMessage) && ChatMessageUtils.isUserMessage(lastMessage)) {
+                await saveMessages(lastMessage)
+            }
+
+            if (ChatMessageUtils.isCompletedMessage(lastMessage) && ChatMessageUtils.isToolMessage(lastMessage)) {
+                const lastSecondMessage = chatMessages.at(-2)
+                if (lastSecondMessage) {
+                    await saveMessages(lastSecondMessage)
+                }
                 await saveMessages(lastMessage)
             }
 

@@ -64,7 +64,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
   // 同步消息至数据库
   useSyncChatMessage(conversationId)
-
+  console.log('当前会话为：', conversationId)
   useEffect(() => {
     if (!lastMessage) {
       return
