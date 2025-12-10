@@ -1,8 +1,5 @@
 /**
- * MCP Hub Simple - 简化版 MCP 服务器连接管理中心
- * 
- * 这是 McpHub 的简化版本，只包含核心功能：
- * - 仅监听项目配置文件（.roo/mcp.json）
+ * - 仅监听项目配置文件（.schoober/mcp.json）
  * - 仅初始化项目服务器
  * - 支持 StdioClientTransport 和 SSEClientTransport
  * - 支持文件监听和自动重启
@@ -115,7 +112,7 @@ export class McpHubSimple {
     // ========================================================================
 
     private async getProjectMcpPath(): Promise<string | null> {
-        const projectMcpDir = path.join(this.workspacePath, ".roo")
+        const projectMcpDir = path.join(this.workspacePath, ".schoober")
         const projectMcpPath = path.join(projectMcpDir, "mcp.json")
 
         try {
@@ -131,14 +128,14 @@ export class McpHubSimple {
     // ========================================================================
 
     /**
-     * 监听项目级 MCP 配置文件（.roo/mcp.json）
+     * 监听项目级 MCP 配置文件（.schoober/mcp.json）
      */
     private async watchProjectMcpFile(): Promise<void> {
         if (this.projectMcpWatcher) {
             this.projectMcpWatcher.dispose()
             this.projectMcpWatcher = undefined
         }
-        const projectMcpPattern = new vscode.RelativePattern(this.workspacePath, ".roo/mcp.json")
+        const projectMcpPattern = new vscode.RelativePattern(this.workspacePath, ".schoober/mcp.json")
         this.projectMcpWatcher = vscode.workspace.createFileSystemWatcher(projectMcpPattern)
 
         // 监听文件变化
