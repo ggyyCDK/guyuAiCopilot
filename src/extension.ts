@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './provider';
-
+import { McpHubSimple } from './mcp/mcpHub';
 /**
  * entry -> register webview
  */
@@ -14,7 +14,11 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
   console.log('activate window is', vscode.window)
+  const mcpHub = new McpHubSimple(context);
+  context.subscriptions.push(mcpHub);
+  globalThis.__mcpHub = mcpHub;
 }
+
 
 // this method is called when your extension is deactivated
 export function deactivate() { }

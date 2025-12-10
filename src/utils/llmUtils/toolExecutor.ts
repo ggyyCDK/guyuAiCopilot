@@ -9,6 +9,7 @@ import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
 import { updateTodoList } from '@/helper/tools/updateTodoList';
+import { useMcpTooltoTool } from "@/helper/tools/useMcpToolTool";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -202,5 +203,24 @@ export const parseToolUse = async (block: ToolUse) => {
             }
             break;
         }
+        case 'use_mcp_tool': {
+            if (block.partial) {
+                break;
+            }
+            console.log('到了use_mcp_tool', block)
+            const { toolResult } = await useMcpTooltoTool({
+                toolUseCommand: block,
+            })
+            pushToolResult({ block, content: toolResult })
+        }
+        // case 'access_mcp_resource': {
+        //     if (block.partial) {
+        //         break;
+        //     }
+        //     console.log('到了access_mcp_resource', block)
+        //     const { toolResult } = await accessMcpResource({
+        //         toolUseCommand: block,
+        //     })
+        // }
     }
 };

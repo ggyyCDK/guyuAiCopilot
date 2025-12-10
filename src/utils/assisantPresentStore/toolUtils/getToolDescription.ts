@@ -12,6 +12,10 @@ export const getToolDescription = (block: ToolUse) => {
             return `[${toolName} for ${block.params.path}]`
         case "replace_in_file":
             return `[${toolName} for ${block.params.path}]`
+        case "use_mcp_tool":
+            return `[${toolName} for ${block.params.server_name}]`
+        case "access_mcp_resource":
+            return `[${toolName} for ${block.params.server_name}]`
         case 'attempt_completion':
             return `[${toolName}]`
     }

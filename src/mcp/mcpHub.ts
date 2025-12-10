@@ -103,7 +103,7 @@ export class McpHubSimple {
 
         const content = await fs.readFile(projectMcpPath, "utf-8")
         const config = JSON.parse(content)
-
+        console.log('mcp project config is', config)
         await this.updateServerConnections(config.mcpServers || {})
     }
 
