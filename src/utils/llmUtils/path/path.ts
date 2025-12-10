@@ -1,5 +1,5 @@
 import * as path from "path"
-
+import * as vscode from "vscode"
 // Safe path comparison that works across different platforms
 export function arePathsEqual(path1?: string, path2?: string): boolean {
     if (!path1 && !path2) {
@@ -27,4 +27,14 @@ function normalizePath(p: string): string {
         normalized = normalized.slice(0, -1)
     }
     return normalized
+}
+
+export const getWorkspacePath = (defaultCwdPath = "") => {
+	const cwdPath = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0) || defaultCwdPath
+	const currentFileUri = vscode.window.activeTextEditor?.document.uri
+	if (currentFileUri) {
+		const workspaceFolder = vscode.workspace.getWorkspaceFolder(currentFileUri)
+		return workspaceFolder?.uri.fsPath || cwdPath
+	}
+	return cwdPath
 }
