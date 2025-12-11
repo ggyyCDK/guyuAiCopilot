@@ -18,14 +18,17 @@ export class McpServerManager {
 		this.initializationPromise = (async () => {
 			try {
 				if (!this.instance) {
-					this.instance = new McpHubSimple()
+					const instance = new McpHubSimple()
+					await instance.ready
+					this.instance = instance
+					console.log('this.instance is', this.instance)
 				}
 				return this.instance
 			} finally {
 				this.initializationPromise = null
 			}
 		})()
-		console.log('this.instance is', this.instance)
+
 		return this.initializationPromise
 
 	}

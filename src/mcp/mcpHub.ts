@@ -60,6 +60,9 @@ export class McpHubSimple {
     // 所有 MCP 服务器连接列表
     connections: McpConnection[] = []
 
+    // 异步初始化完成的 Promise，供外部等待
+    readonly ready: Promise<void>
+
     // 标记是否正在连接服务器
     isConnecting: boolean = false
 
@@ -86,7 +89,7 @@ export class McpHubSimple {
         this.version = "1.0.0"
 
         this.watchProjectMcpFile()
-        this.initializeProjectMcpServers()
+        this.ready = this.initializeProjectMcpServers()
     }
 
     // ========================================================================
@@ -104,7 +107,7 @@ export class McpHubSimple {
         const config = JSON.parse(content)
 
         await this.updateServerConnections(config.mcpServers || {})
-        console.log('mcp project config is', this.connections)
+        console.log('mcp project config is', this)
     }
 
     // ========================================================================
