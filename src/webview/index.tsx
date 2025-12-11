@@ -30,6 +30,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
+  const [mcpServers, setMcpServers] = useState<any[]>([]);
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
   const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage, initData, conversationId } = useIMStore()
@@ -43,16 +44,19 @@ const Sidebar: React.FC<ISidebarProps> = () => {
 
     // 监听本地消息用于切换视图
     const handleLocalMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'switch-view') {
-        const { view, conversationId: newConversationId } = event.data.payload;
+      if (event.data?.type === 'switch-view') {
+        const { view } = event.data.payload;
         setViewMode(view);
-        // 如果需要更新 conversationId，可能需要一种方式来通知组件或者 store
-        // 由于 conversationId 是 useMemo 生成的，这里直接修改可能不生效，
-        // 除非我们将 conversationId 放入 store 或者 state 中管理
-        // 目前简单实现切换视图
+      }
+
+      if (event.data?.type === 'mcp-tools') {
+        setMcpServers(event.data.payload?.servers || []);
       }
     };
     window.addEventListener('message', handleLocalMessage);
+
+    // 请求一次当前 MCP 服务器/工具信息
+    vscode.postMessage({ type: 'get-mcp-tools', payload: {} });
 
     initData();
 
@@ -61,7 +65,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       window.removeEventListener('message', handleLocalMessage);
     };
   }, []);
-
+  console.log('mcpServers is:', mcpServers)
   // 同步消息至数据库
   useSyncChatMessage(conversationId)
   console.log('当前会话为：', conversationId)

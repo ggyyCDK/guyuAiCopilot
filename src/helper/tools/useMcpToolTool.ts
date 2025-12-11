@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { IToolExecutor } from '@/type/tools/msgToolsParse';
-import { McpHubSimple } from '@/mcp/mcpHub';
+import { McpServerManager } from '@/mcp/McpServerManager';
 import { McpToolCallResponse } from '@/mcp/mcpType';
 
 interface McpToolParams {
@@ -18,32 +18,17 @@ type ValidationResult =
         parsedArguments?: Record<string, unknown>
     }
 
-let cachedHub: McpHubSimple | null = null;
-
 /**
  * 获取已初始化的 MCP Hub。
- * - 优先使用全局缓存（避免重复创建）。
- * - 允许从 globalThis 注入（便于在激活时设置）。
+ * 使用 McpServerManager 单例模式获取实例。
  */
-function getMcpHub(): McpHubSimple | null {
-    if (cachedHub) return cachedHub;
-
-    const injected = (globalThis as any).__mcpHub as McpHubSimple | undefined;
-    if (injected) {
-        cachedHub = injected;
-        return cachedHub;
+function getMcpHub() {
+    try {
+        return McpServerManager.getInstance();
+    } catch (error) {
+        console.error('Failed to get MCP Hub:', error);
+        return null;
     }
-
-    // 尝试通过扩展实例化（如果需要可以在这里补充上下文注入逻辑）
-    const extension = vscode.extensions.getExtension('guyu.vscode-extension-test');
-    const context = (extension as any)?.exports?.context as vscode.ExtensionContext | undefined;
-    if (context) {
-        cachedHub = new McpHubSimple(context);
-        (globalThis as any).__mcpHub = cachedHub;
-        return cachedHub;
-    }
-
-    return null;
 }
 
 async function validateParams(params: McpToolParams): Promise<ValidationResult> {

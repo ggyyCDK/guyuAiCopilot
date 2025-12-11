@@ -1,5 +1,8 @@
 {
     "mcpServers": {
-
+      "12306-mcp": {
+        "type": "sse",
+        "url": "https://mcp.api-inference.modelscope.net/e4dac73e42fd45/sse"
+      }
     }
-}
+  }

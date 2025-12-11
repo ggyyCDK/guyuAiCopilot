@@ -63,8 +63,8 @@ export class McpHubSimple {
     // 标记是否正在连接服务器
     isConnecting: boolean = false
 
-    // 扩展上下文
-    private context: vscode.ExtensionContext
+    // 扩展上下文(暂时不需要)
+    // private context: vscode.ExtensionContext
 
     // 工作区路径
     private workspacePath: string
@@ -81,10 +81,9 @@ export class McpHubSimple {
     // VSCode 资源清理列表
     private disposables: vscode.Disposable[] = []
 
-    constructor(context: vscode.ExtensionContext) {
-        this.context = context
+    constructor() {
         this.workspacePath = getWorkspacePath()
-        this.version = context.extension?.packageJSON?.version ?? "1.0.0"
+        this.version = "1.0.0"
 
         this.watchProjectMcpFile()
         this.initializeProjectMcpServers()
@@ -103,8 +102,9 @@ export class McpHubSimple {
 
         const content = await fs.readFile(projectMcpPath, "utf-8")
         const config = JSON.parse(content)
-        console.log('mcp project config is', config)
+
         await this.updateServerConnections(config.mcpServers || {})
+        console.log('mcp project config is', this.connections)
     }
 
     // ========================================================================
@@ -259,7 +259,7 @@ export class McpHubSimple {
         if (config) {
             connection.server.status = "connecting"
             connection.server.error = ""
-
+            console.log('restart me')
             await this.deleteConnection(serverName)
             const parsedConfig = JSON.parse(config)
             await this.connectToServer(serverName, parsedConfig)
@@ -273,7 +273,7 @@ export class McpHubSimple {
     // ========================================================================
 
     getServers(): McpServer[] {
-        return this.connections.filter((conn) => !conn.server.disabled).map((conn) => conn.server)
+        return this.connections.map((conn) => conn.server)
     }
 
     getAllServers(): McpServer[] {
@@ -335,6 +335,7 @@ export class McpHubSimple {
             })
         } else if (config.url && config.type === "sse") {
             // SSE 配置
+            console.log('i am sse')
             const reconnectingEventSourceOptions = {
                 max_retry_time: 5000,
                 withCredentials: config.headers?.["Authorization"] ? true : false,
@@ -363,7 +364,7 @@ export class McpHubSimple {
                 name,
                 config: JSON.stringify(config),
                 status: "connecting",
-                disabled: config.disabled,
+                disabled: false,
                 source: "project",
                 projectPath: this.workspacePath,
                 errorHistory: [],
@@ -373,6 +374,7 @@ export class McpHubSimple {
         }
         this.connections.push(connection)
 
+        console.log('connection is1', connection)
         await client.connect(transport)
         connection.server.status = "connected"
         connection.server.error = ""
@@ -381,6 +383,8 @@ export class McpHubSimple {
         connection.server.tools = await this.fetchToolsList(name)
         connection.server.resources = await this.fetchResourcesList(name)
         connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name)
+        console.log('connection is', connection)
+       
     }
 
     private findConnection(serverName: string): McpConnection | undefined {
@@ -452,7 +456,7 @@ export class McpHubSimple {
     async updateServerConnections(newServers: Record<string, any>): Promise<void> {
         this.isConnecting = true
         this.removeAllFileWatchers()
-
+        console.log('newServers is', newServers)
         const currentNames = new Set(this.connections.map((conn) => conn.server.name))
         const newNames = new Set(Object.keys(newServers))
 
@@ -469,6 +473,7 @@ export class McpHubSimple {
 
             if (!currentConnection) {
                 // 新服务器
+                console.log('name, config is', name, config)
                 await this.connectToServer(name, config)
             } else if (JSON.stringify(JSON.parse(currentConnection.server.config)) !== JSON.stringify(config)) {
                 // 配置已变化的现有服务器

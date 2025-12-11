@@ -5,7 +5,7 @@ import { StartMultiRoundTask } from '@/utils/llmRequest/multiRoundTask'
 import { multiRoundTaskParams } from '@/type/imType/aiRequest'
 import { compressSessionContext, getWorkspaceCwd, fetchSessionList, saveChatMessage, getChatMessages } from '@/handler'
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
-
+import { McpServerManager } from './mcp/McpServerManager';
 export interface Message {
   type: string;
   question?: string;
@@ -36,6 +36,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (options: Message) => {
       const { type, payload } = options;
       switch (type) {
+        case 'get-mcp-tools': {
+          try {
+            const hub = await McpServerManager.getInstance();
+            const servers = hub.getServers() || [];
+            console.log('get-mcp-tools servers is', hub);
+            if (this._view) {
+              this._view.webview.postMessage({
+                type: 'mcp-tools',
+                payload: { servers },
+              });
+            }
+          } catch (error) {
+            console.error('Failed to get MCP tools:', error);
+            if (this._view) {
+              this._view.webview.postMessage({
+                type: 'mcp-tools',
+                payload: { servers: [] },
+              });
+            }
+          }
+          break;
+        }
         case 'stream-chat': {
           //发送之后，收取消息，发起多轮对话
           StartMultiRoundTask({
