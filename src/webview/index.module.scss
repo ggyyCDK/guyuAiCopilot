@@ -6,6 +6,7 @@
     display: flex;
     justify-content: flex-end;
     padding: 12px;
+    gap: 8px;
 }
 
 .otherMessageContainer {
@@ -91,6 +92,31 @@
 
 .setting {
     cursor: pointer;
+}
+
+.viewTab {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+}
+
+.activeViewTab {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.5);
+    color: #fff;
 }
 
 .configSummary {
@@ -616,4 +642,150 @@ textarea::placeholder {
         background: rgba(255, 255, 255, 0.2);
         transform: translateY(-1px);
     }
+}
+
+.mcpPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 10px 16px;
+}
+
+.mcpPanelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.mcpPanelTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mcpPanelDesc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 4px;
+}
+
+.mcpBackButton {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+}
+
+.mcpEmpty {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+}
+
+.mcpList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.mcpCard {
+    border-radius: 14px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: rgba(102, 126, 234, 0.35);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    }
+}
+
+.mcpCardDisabled {
+    opacity: 0.75;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.mcpCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.mcpName {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.mcpMeta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.mcpStatus {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid transparent;
+}
+
+.mcpStatusActive {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: rgba(52, 211, 153, 0.35);
+    color: #34d399;
+}
+
+.mcpStatusDisabled {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.28);
+    color: #fca5a5;
+}
+
+.mcpTools {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mcpToolItem {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mcpToolName {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mcpToolDesc {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.mcpToolEmpty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
 }

@@ -5,7 +5,7 @@ import { ChatMessage, MessageStatus, MessageType } from '@/type/imType/im'
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
 import { Input } from 'antd';
-import { SettingOutlined, SendOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons'
+import { SettingOutlined, SendOutlined, PoweroffOutlined, HistoryOutlined, ApiOutlined, MessageOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
@@ -22,7 +22,87 @@ const vscode = (window as any).acquireVsCodeApi();
 
 const SETTINGS_STORAGE_KEY = 'schoober-ai-settings';
 
-type ViewMode = 'chat' | 'settings' | 'history';
+type ViewMode = 'chat' | 'settings' | 'history' | 'mcp';
+
+interface McpToolInfo {
+  name?: string;
+  description?: string;
+}
+
+interface McpServerInfo {
+  name: string;
+  disabled?: boolean;
+  tools?: McpToolInfo[];
+}
+
+const McpConfigPanel: React.FC<{
+  servers: McpServerInfo[];
+  onBack: () => void;
+}> = ({ servers, onBack }) => {
+  const [expandedServer, setExpandedServer] = useState<string | null>(null);
+
+  const toggleServer = (name: string) => {
+    setExpandedServer((prev) => (prev === name ? null : name));
+  };
+
+  return (
+    <div className={styles.mcpPanel}>
+      <div className={styles.mcpPanelHeader}>
+        <div>
+          <div className={styles.mcpPanelTitle}>MCP 配置</div>
+          <div className={styles.mcpPanelDesc}>查看已加载的 MCP 服务及其可用工具</div>
+        </div>
+        <div className={styles.mcpBackButton} onClick={onBack}>← 返回聊天</div>
+      </div>
+
+      {servers.length === 0 ? (
+        <div className={styles.mcpEmpty}>暂无 MCP 服务，检查 .schoober/mcp.json 配置</div>
+      ) : (
+        <div className={styles.mcpList}>
+          {servers.map((server) => {
+            const disabled = !!server.disabled;
+            const isExpanded = expandedServer === server.name;
+            const tools = server.tools || [];
+            return (
+              <div
+                key={server.name}
+                className={`${styles.mcpCard} ${disabled ? styles.mcpCardDisabled : ''}`}
+                onClick={() => toggleServer(server.name)}
+              >
+                <div className={styles.mcpCardHeader}>
+                  <div>
+                    <div className={styles.mcpName}>{server.name}</div>
+                    <div className={styles.mcpMeta}>
+                      {disabled ? '已关闭' : '已开启'} · {tools.length} 个工具
+                    </div>
+                  </div>
+                  <div className={`${styles.mcpStatus} ${disabled ? styles.mcpStatusDisabled : styles.mcpStatusActive}`}>
+                    {disabled ? '已关闭' : '运行中'}
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className={styles.mcpTools}>
+                    {tools.length === 0 ? (
+                      <div className={styles.mcpToolEmpty}>暂无可用工具</div>
+                    ) : (
+                      tools.map((tool) => (
+                        <div key={tool.name} className={styles.mcpToolItem}>
+                          <div className={styles.mcpToolName}>{tool.name || '未命名工具'}</div>
+                          {tool.description && <div className={styles.mcpToolDesc}>{tool.description}</div>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Sidebar: React.FC<ISidebarProps> = () => {
   const [error, setError] = useState<string>('');
@@ -237,6 +317,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
     ]
   }, [ak, apiUrl])
   console.log('chatmessage is:', chatMessages)
+
+  const viewTabs: { key: ViewMode; label: React.ReactNode; title: string }[] = [
+    { key: 'chat', label: <MessageOutlined />, title: '聊天' },
+    { key: 'history', label: <HistoryOutlined />, title: '历史对话' },
+    { key: 'mcp', label: <ApiOutlined />, title: 'MCP 配置' },
+    { key: 'settings', label: <SettingOutlined />, title: '设置' },
+  ];
+
   return (
     <>
       <div className={styles.aiLayout}>
@@ -247,21 +335,16 @@ const Sidebar: React.FC<ISidebarProps> = () => {
               <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
             </div>
             <div className={styles.actionButtons}>
-              <div
-                className={styles.setting}
-                onClick={() => setViewMode(viewMode === 'chat' ? 'history' : 'chat')}
-                title="历史对话"
-                style={{ marginRight: '12px' }}
-              >
-                {viewMode === 'chat' ? <HistoryOutlined /> : null}
-              </div>
-              <div
-                className={styles.setting}
-                onClick={() => setViewMode(viewMode === 'chat' ? 'settings' : 'chat')}
-                title="设置"
-              >
-                {viewMode === 'chat' ? <SettingOutlined /> : '← 返回'}
-              </div>
+              {viewTabs.map((tab) => (
+                <div
+                  key={tab.key}
+                  className={`${styles.viewTab} ${viewMode === tab.key ? styles.activeViewTab : ''}`}
+                  onClick={() => setViewMode(tab.key)}
+                  title={tab.title}
+                >
+                  {tab.label}
+                </div>
+              ))}
             </div>
           </div>
           {viewMode === 'chat' && (
@@ -351,9 +434,14 @@ const Sidebar: React.FC<ISidebarProps> = () => {
             onApiUrlChange={setApiUrl}
             onBack={() => setViewMode('chat')}
           />
-        ) : (
+        ) : viewMode === 'history' ? (
           <HistoryPanel
             conversationId={conversationId}
+            onBack={() => setViewMode('chat')}
+          />
+        ) : (
+          <McpConfigPanel
+            servers={mcpServers}
             onBack={() => setViewMode('chat')}
           />
         )}

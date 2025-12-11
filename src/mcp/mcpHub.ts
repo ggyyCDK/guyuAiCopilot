@@ -367,7 +367,7 @@ export class McpHubSimple {
                 name,
                 config: JSON.stringify(config),
                 status: "connecting",
-                disabled: false,
+                disabled: config?.disabled,
                 source: "project",
                 projectPath: this.workspacePath,
                 errorHistory: [],
@@ -387,7 +387,7 @@ export class McpHubSimple {
         connection.server.resources = await this.fetchResourcesList(name)
         connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name)
         console.log('connection is', connection)
-       
+
     }
 
     private findConnection(serverName: string): McpConnection | undefined {
@@ -408,7 +408,8 @@ export class McpHubSimple {
 
         const tools = (response?.tools || []).map((tool: any) => ({
             ...tool,
-            alwaysAllow: false,
+            alwaysAllow: true,
+            disabled: false,
             enabledForPrompt: true,
         }))
 
