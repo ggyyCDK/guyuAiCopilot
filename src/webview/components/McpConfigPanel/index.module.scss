@@ -82,6 +82,16 @@
     gap: 10px;
 }
 
+.mcpCardLeft {
+    flex: 1;
+}
+
+.mcpCardRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .mcpName {
     font-size: 15px;
     font-weight: 600;
@@ -93,11 +103,20 @@
     color: rgba(255, 255, 255, 0.65);
 }
 
+.mcpSwitch {
+    :global {
+        .ant-switch-inner {
+            font-size: 12px;
+        }
+    }
+}
+
 .mcpStatus {
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 12px;
     border: 1px solid transparent;
+    white-space: nowrap;
 }
 
 .mcpStatusActive {

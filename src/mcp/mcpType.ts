@@ -81,3 +81,106 @@ export type McpToolCallResponse = {
     >
     isError?: boolean
 }
+
+export interface IMcpServer {
+    name: string;
+    config: string;
+    status: string;
+    source: string;
+    projectPath: string;
+    errorHistory: any[];
+    error: string;
+    tools: Tool[];
+    resources: Resource[];
+    resourceTemplates: any[];
+    disabled?: boolean
+}
+
+export interface Resource {
+    name: string;
+    uri: string;
+}
+
+export interface Tool {
+    name: string;
+    description: string;
+    inputSchema: InputSchema;
+    alwaysAllow: boolean;
+    disabled: boolean;
+    enabledForPrompt: boolean;
+}
+
+export interface InputSchema {
+    type: string;
+    properties: Properties;
+    additionalProperties: boolean;
+    $schema: string;
+    required?: string[];
+}
+
+export interface Properties {
+    city?: City;
+    citys?: City;
+    stationNames?: City;
+    stationTelecode?: City;
+    date?: DateClass;
+    fromStation?: City;
+    toStation?: City;
+    trainFilterFlags?: TrainFilterFlags;
+    earliestStartTime?: EarliestStartTime;
+    latestStartTime?: EarliestStartTime;
+    sortFlag?: MiddleStation;
+    sortReverse?: CSVFormat;
+    limitedNum?: EarliestStartTime;
+    csvFormat?: CSVFormat;
+    middleStation?: MiddleStation;
+    showWZ?: CSVFormat;
+    trainNo?: City;
+    fromStationTelecode?: City;
+    toStationTelecode?: City;
+    departDate?: DateClass;
+}
+
+export interface City {
+    type: Type;
+    description: string;
+}
+
+export enum Type {
+    String = "string",
+}
+
+export interface CSVFormat {
+    type: string;
+    default: boolean;
+    description: string;
+}
+
+export interface DateClass {
+    type: Type;
+    minLength: number;
+    maxLength: number;
+    description: string;
+}
+
+export interface EarliestStartTime {
+    type: string;
+    minimum: number;
+    maximum?: number;
+    default: number;
+    description: string;
+}
+
+export interface MiddleStation {
+    type: Type;
+    default: string;
+    description: string;
+}
+
+export interface TrainFilterFlags {
+    type: Type;
+    pattern: string;
+    maxLength: number;
+    default: string;
+    description: string;
+}

@@ -1,27 +1,32 @@
 import React, { useState } from 'react';
+import { Switch } from 'antd';
 import styles from './index.module.scss';
-
-interface McpToolInfo {
-  name?: string;
-  description?: string;
-}
-
-interface McpServerInfo {
-  name: string;
-  disabled?: boolean;
-  tools?: McpToolInfo[];
-}
+import { IMcpServer } from '@/mcp/mcpType';
 
 interface McpConfigPanelProps {
-  servers: McpServerInfo[];
+  servers: IMcpServer[];
   onBack: () => void;
+  onServerUpdate: (servers: IMcpServer[]) => void;
 }
 
-const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack }) => {
+const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServerUpdate }) => {
   const [expandedServer, setExpandedServer] = useState<string | null>(null);
 
   const toggleServer = (name: string) => {
     setExpandedServer((prev) => (prev === name ? null : name));
+  };
+
+  const handleToggleServerStatus = (serverName: string, checked: boolean) => {
+    // 阻止事件冒泡，防止触发卡片展开
+    event?.stopPropagation();
+    
+    // 更新父组件的 mcpServers 状态
+    const updatedServers = servers.map(server => 
+      server.name === serverName 
+        ? { ...server, disabled: !checked }
+        : server
+    );
+    onServerUpdate(updatedServers);
   };
 
   return (
@@ -49,14 +54,24 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack }) => {
                 onClick={() => toggleServer(server.name)}
               >
                 <div className={styles.mcpCardHeader}>
-                  <div>
+                  <div className={styles.mcpCardLeft}>
                     <div className={styles.mcpName}>{server.name}</div>
                     <div className={styles.mcpMeta}>
                       {disabled ? '已关闭' : '已开启'} · {tools.length} 个工具
                     </div>
                   </div>
-                  <div className={`${styles.mcpStatus} ${disabled ? styles.mcpStatusDisabled : styles.mcpStatusActive}`}>
-                    {disabled ? '已关闭' : '运行中'}
+                  <div className={styles.mcpCardRight}>
+                    <Switch
+                      checked={!disabled}
+                      onChange={(checked) => handleToggleServerStatus(server.name, checked)}
+                      onClick={(_, e) => e.stopPropagation()}
+                      checkedChildren="启用"
+                      unCheckedChildren="禁用"
+                      className={styles.mcpSwitch}
+                    />
+                    <div className={`${styles.mcpStatus} ${disabled ? styles.mcpStatusDisabled : styles.mcpStatusActive}`}>
+                      {disabled ? '已关闭' : '运行中'}
+                    </div>
                   </div>
                 </div>
 
