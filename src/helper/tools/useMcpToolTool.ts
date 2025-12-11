@@ -22,9 +22,9 @@ type ValidationResult =
  * 获取已初始化的 MCP Hub。
  * 使用 McpServerManager 单例模式获取实例。
  */
-function getMcpHub() {
+async function getMcpHub() {
     try {
-        return McpServerManager.getInstance();
+        return await McpServerManager.getInstance();
     } catch (error) {
         console.error('Failed to get MCP Hub:', error);
         return null;
@@ -106,7 +106,7 @@ export const useMcpTooltoTool: IToolExecutor = async (command) => {
         }
     }
 
-    const mcpHub = getMcpHub();
+    const mcpHub = await getMcpHub();
     if (!mcpHub) {
         return {
             toolResult: 'MCP hub is not initialized. Please ensure the extension has created a hub instance.',
