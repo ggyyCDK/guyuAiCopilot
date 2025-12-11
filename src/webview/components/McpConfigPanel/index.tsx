@@ -29,15 +29,36 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
     onServerUpdate(updatedServers);
   };
 
+  const handleToggleToolStatus = (serverName: string, toolName: string, checked: boolean, e: React.MouseEvent) => {
+    // 阻止事件冒泡
+    e.stopPropagation();
+    
+    // 更新父组件的 mcpServers 状态
+    const updatedServers = servers.map(server => {
+      if (server.name === serverName) {
+        return {
+          ...server,
+          tools: server.tools?.map(tool => 
+            tool.name === toolName 
+              ? { ...tool, disabled: !checked }
+              : tool
+          ) || []
+        };
+      }
+      return server;
+    });
+    onServerUpdate(updatedServers);
+  };
+
   return (
     <div className={styles.mcpPanel}>
-      <div className={styles.mcpPanelHeader}>
+      {/* <div className={styles.mcpPanelHeader}>
         <div>
           <div className={styles.mcpPanelTitle}>MCP 配置</div>
           <div className={styles.mcpPanelDesc}>查看已加载的 MCP 服务及其可用工具</div>
         </div>
         <div className={styles.mcpBackButton} onClick={onBack}>← 返回聊天</div>
-      </div>
+      </div> */}
 
       {servers.length === 0 ? (
         <div className={styles.mcpEmpty}>暂无 MCP 服务，检查 .schoober/mcp.json 配置</div>
@@ -80,12 +101,27 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
                     {tools.length === 0 ? (
                       <div className={styles.mcpToolEmpty}>暂无可用工具</div>
                     ) : (
-                      tools.map((tool) => (
-                        <div key={tool.name} className={styles.mcpToolItem}>
-                          <div className={styles.mcpToolName}>{tool.name || '未命名工具'}</div>
-                          {tool.description && <div className={styles.mcpToolDesc}>{tool.description}</div>}
-                        </div>
-                      ))
+                      tools.map((tool) => {
+                        const toolDisabled = !!tool.disabled;
+                        return (
+                          <div 
+                            key={tool.name} 
+                            className={`${styles.mcpToolItem} ${toolDisabled ? styles.mcpToolItemDisabled : ''}`}
+                          >
+                            <div className={styles.mcpToolLeft}>
+                              <div className={styles.mcpToolName}>{tool.name || '未命名工具'}</div>
+                              {tool.description && <div className={styles.mcpToolDesc}>{tool.description}</div>}
+                            </div>
+                            <Switch
+                              size="small"
+                              checked={!toolDisabled}
+                              onChange={(checked, e) => handleToggleToolStatus(server.name, tool.name, checked, e as any)}
+                              onClick={(_, e) => e.stopPropagation()}
+                              className={styles.mcpToolSwitch}
+                            />
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 )}
