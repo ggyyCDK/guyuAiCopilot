@@ -249,7 +249,7 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           <div className={styles.headerRow}>
             <div>
               <div className={styles.appTitle}>✨ SchooberAi</div>
-              <div className={styles.appSubtitle}>智能编程助手，随时为您解答技术问题</div>
+              <div className={styles.appSubtitle}>智能编程助手</div>
             </div>
             <div className={styles.actionButtons}>
               {viewTabs.map((tab) => (

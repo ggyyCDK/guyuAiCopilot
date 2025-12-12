@@ -19,10 +19,10 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
   const handleToggleServerStatus = (serverName: string, checked: boolean) => {
     // 阻止事件冒泡，防止触发卡片展开
     event?.stopPropagation();
-    
+
     // 更新父组件的 mcpServers 状态
-    const updatedServers = servers.map(server => 
-      server.name === serverName 
+    const updatedServers = servers.map(server =>
+      server.name === serverName
         ? { ...server, disabled: !checked }
         : server
     );
@@ -32,14 +32,14 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
   const handleToggleToolStatus = (serverName: string, toolName: string, checked: boolean, e: React.MouseEvent) => {
     // 阻止事件冒泡
     e.stopPropagation();
-    
+
     // 更新父组件的 mcpServers 状态
     const updatedServers = servers.map(server => {
       if (server.name === serverName) {
         return {
           ...server,
-          tools: server.tools?.map(tool => 
-            tool.name === toolName 
+          tools: server.tools?.map(tool =>
+            tool.name === toolName
               ? { ...tool, disabled: !checked }
               : tool
           ) || []
@@ -78,7 +78,7 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
                   <div className={styles.mcpCardLeft}>
                     <div className={styles.mcpName}>{server.name}</div>
                     <div className={styles.mcpMeta}>
-                      {disabled ? '已关闭' : '已开启'} · {tools.length} 个工具
+                      {tools.length} 个工具
                     </div>
                   </div>
                   <div className={styles.mcpCardRight}>
@@ -104,8 +104,8 @@ const McpConfigPanel: React.FC<McpConfigPanelProps> = ({ servers, onBack, onServ
                       tools.map((tool) => {
                         const toolDisabled = !!tool.disabled;
                         return (
-                          <div 
-                            key={tool.name} 
+                          <div
+                            key={tool.name}
                             className={`${styles.mcpToolItem} ${toolDisabled ? styles.mcpToolItemDisabled : ''}`}
                           >
                             <div className={styles.mcpToolLeft}>

@@ -5,7 +5,6 @@
 .actionButtons {
     display: flex;
     justify-content: flex-end;
-    padding: 12px;
     gap: 8px;
 }
 
@@ -74,7 +73,7 @@
 }
 
 .appTitle {
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 700;
     background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
     -webkit-background-clip: text;
@@ -88,6 +87,8 @@
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
     font-weight: 400;
+    display: flex;
+    justify-content: center;
 }
 
 .setting {
