@@ -16,7 +16,6 @@ import McpConfigPanel from './components/McpConfigPanel'
 import styles from './index.module.scss';
 import { createProviderMessageHandler } from './providerHandler';
 import { useSyncChatMessage } from '@/hooks/useSyncChatMessage';
-import { IMcpServer } from '@/mcp/mcpType'
 interface ISidebarProps { }
 const vscode = (window as any).acquireVsCodeApi();
 // 将 vscode 实例挂载到 window 对象，供其他组件使用
@@ -32,10 +31,9 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [ak, setAk] = useState<string>('');
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
-  const [mcpServers, setMcpServers] = useState<IMcpServer[]>([]);
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
-  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mergeMessages, getLastMessage, initData, conversationId } = useIMStore()
+  const { chatMessages, chatLoading, compressing, totalTokens, todoList, mcpServers, mergeMessages, getLastMessage, initData, conversationId, setMcpServers } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
   const lastMessage = getLastMessage()
 

@@ -1,5 +1,6 @@
 import { ChatConversation, ChatMessage, AiSession } from "@/type/imType/im";
 import { TodoItem } from '@/type/tools/todo'
+import { IMcpServer } from '@/mcp/mcpType'
 
 export interface IMState {
     chatMessages: ChatMessage[]; //对话列表
@@ -10,6 +11,7 @@ export interface IMState {
     pwd: string; //当前工作区路径
     sessionList: AiSession[]; //会话列表
     conversationId: string; //当前会话ID
+    mcpServers: IMcpServer[]; //MCP服务器列表
 }
 
 export const initialIMState: IMState = {
@@ -20,5 +22,6 @@ export const initialIMState: IMState = {
     totalTokens: 0,
     pwd: '',
     sessionList: [],
-    conversationId: ''
+    conversationId: '',
+    mcpServers: []
 }
