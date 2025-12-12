@@ -16,6 +16,8 @@ export interface ApiRequestParams {
     onError?: (error: any) => void;
     onUsage?: (usage: any) => void;
     signal?: AbortSignal;
+    mcpHubDataInfo?: any[];
+    mcpHub?: boolean
 }
 
 export enum EventType {
@@ -38,6 +40,8 @@ export interface multiRoundTaskParams {
     baseUrl: string;
     variableMaps?: Record<string, any>;
     includeFileDetails?: boolean;
+    mcpHubDataInfo?: any[];
+    mcpHub?: boolean
 }
 
 /**

@@ -65,10 +65,8 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       window.removeEventListener('message', handleLocalMessage);
     };
   }, []);
-  console.log('mcpServers is:', mcpServers)
   // 同步消息至数据库
   useSyncChatMessage(conversationId)
-  console.log('当前会话为：', conversationId)
   useEffect(() => {
     if (!lastMessage) {
       return
@@ -131,11 +129,22 @@ const Sidebar: React.FC<ISidebarProps> = () => {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
       }
     }, 100);
+    // 过滤掉 disabled 的服务器，以及每个服务器中 disabled 的 tool
+    const mcpHubDataInfo = mcpServers
+      .filter(server => !server.disabled) // 过滤掉 disabled 的服务器
+      .map(server => ({
+        ...server,
+        tools: server.tools?.filter(tool => !tool.disabled) || [] // 过滤掉 disabled 的工具
+      }))
+      .filter(server => server.tools.length > 0) // 移除没有可用工具的服务器
 
+    const hasMcpHub = mcpHubDataInfo?.length > 0
     vscode.postMessage({
       type: 'stream-chat',
       payload: {
         question,
+        mcpHub: hasMcpHub,
+        mcpHubDataInfo,
         conversationId: conversationId,
         workerId: 'guyu',
         variableMaps: {
@@ -231,7 +240,6 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       }
     ]
   }, [ak, apiUrl])
-  console.log('chatmessage is:', chatMessages)
 
   const viewTabs: { key: ViewMode; label: React.ReactNode; title: string }[] = [
     { key: 'chat', label: <MessageOutlined />, title: '聊天' },

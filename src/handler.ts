@@ -38,7 +38,8 @@ export function getWorkspaceCwd() {
  * @returns void
  */
 export const streamAgentChat = async (command: ApiRequestParams) => {
-  const { question, workerId, conversationId, baseUrl, variableMaps, onMessage, onIntervalMessage, onUsage, onComplete, onError } = command;
+  const { question, workerId, conversationId, baseUrl, variableMaps, mcpHubDataInfo,
+    mcpHub, onMessage, onIntervalMessage, onUsage, onComplete, onError } = command;
   const { llmConfig } = variableMaps ?? {}
   const { ak, ApiUrl } = llmConfig
   let content = ''
@@ -73,6 +74,8 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
       sessionId: conversationId,
       sessionTitle,
       workerId,
+      mcpHubDataInfo,
+      mcpHub,
       variableMaps: {
         llmConfig: {
           cwdFormatted: currentCwd,
@@ -161,7 +164,8 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
  * @returns 
  */
 export const attemptApiRequest = async function* (command: ApiRequestParams) {
-  const { question, workerId, conversationId, baseUrl, variableMaps } = command;
+  const { question, workerId, conversationId, baseUrl, variableMaps, mcpHubDataInfo,
+    mcpHub } = command;
 
   let responseBufferList: string[] = []
   let isCompleted = false
@@ -174,6 +178,8 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
         conversationId,
         variableMaps,
         baseUrl,
+        mcpHubDataInfo,
+        mcpHub,
         onIntervalMessage: (msg) => {
           responseBufferList.push(msg.segmentContent)
         },
