@@ -22,6 +22,7 @@ const vscode = (window as any).acquireVsCodeApi();
 (window as any).vscode = vscode;
 
 const SETTINGS_STORAGE_KEY = 'schoober-ai-settings';
+const MCP_CONFIG_STORAGE_KEY = 'schoober-ai-mcp-config';
 
 type ViewMode = 'chat' | 'settings' | 'history' | 'mcp';
 
@@ -78,7 +79,37 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       }
 
       if (event.data?.type === 'mcp-tools') {
-        setMcpServers(event.data.payload?.servers || []);
+        const remoteServers = event.data.payload?.servers || [];
+        try {
+          const storedConfig = localStorage.getItem(MCP_CONFIG_STORAGE_KEY);
+          if (storedConfig) {
+            const savedConfig = JSON.parse(storedConfig);
+            // Merge saved config with remote servers
+            const mergedServers = remoteServers.map((server: any) => {
+              const savedServer = savedConfig.find((s: any) => s.name === server.name);
+              if (savedServer) {
+                return {
+                  ...server,
+                  disabled: savedServer.disabled,
+                  tools: server.tools?.map((tool: any) => {
+                    const savedTool = savedServer.tools?.find((t: any) => t.name === tool.name);
+                    return {
+                      ...tool,
+                      disabled: savedTool ? savedTool.disabled : tool.disabled
+                    };
+                  })
+                };
+              }
+              return server;
+            });
+            setMcpServers(mergedServers);
+          } else {
+            setMcpServers(remoteServers);
+          }
+        } catch (e) {
+          console.error('Failed to restore MCP config', e);
+          setMcpServers(remoteServers);
+        }
       }
     };
     window.addEventListener('message', handleLocalMessage);
@@ -127,6 +158,25 @@ const Sidebar: React.FC<ISidebarProps> = () => {
       console.warn('保存本地配置失败', error);
     }
   }, [ak, apiUrl]);
+
+  // Persist MCP config
+  useEffect(() => {
+    if (mcpServers.length > 0) {
+      try {
+        const configToSave = mcpServers.map(server => ({
+          name: server.name,
+          disabled: server.disabled,
+          tools: server.tools?.map(tool => ({
+            name: tool.name,
+            disabled: tool.disabled
+          }))
+        }));
+        localStorage.setItem(MCP_CONFIG_STORAGE_KEY, JSON.stringify(configToSave));
+      } catch (error) {
+        console.warn('保存MCP配置失败', error);
+      }
+    }
+  }, [mcpServers]);
 
   const nextId = () => {
     return `${new Date().getTime()}_${uniqueId()}`
