@@ -14,7 +14,14 @@ export const useSyncChatMessage = (conversationId: string) => {
             conversationId,
         }
         if (formattedMessage.content && currentMessage.type === 'Text') {
-            formattedMessage.content = { text: currentMessage.content }
+            if (Array.isArray(currentMessage.content)) {
+                // 如果是数组，过滤掉 type 为 image 或者 image_url 的项
+                formattedMessage.content = currentMessage.content.filter((item: any) =>
+                    item.type !== 'image' && item.type !== 'image_url'
+                );
+            } else {
+                formattedMessage.content = { text: currentMessage.content }
+            }
         }
         (window as any).vscode.postMessage({
             type: 'save-chat-message',
