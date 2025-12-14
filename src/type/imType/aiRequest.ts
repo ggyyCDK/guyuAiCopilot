@@ -41,7 +41,8 @@ export interface multiRoundTaskParams {
     variableMaps?: Record<string, any>;
     includeFileDetails?: boolean;
     mcpHubDataInfo?: any[];
-    mcpHub?: boolean
+    mcpHub?: boolean;
+    images?: string[]; // base64 images
 }
 
 /**

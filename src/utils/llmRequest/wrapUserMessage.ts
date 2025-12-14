@@ -16,6 +16,24 @@ export interface ToolUseBlockParam {
 
     type: 'tool_use';
 }
+
+export interface ImageBlockParam {
+    type: 'image_url';
+    image_url: {
+        url: string;
+        detail?: "auto" | "low" | "high";
+    };
+}
+
+export interface AnthropicImageBlockParam {
+    type: 'image';
+    source: {
+        type: 'base64';
+        media_type: string;
+        data: string;
+    };
+}
+
 export interface ToolResultBlockParam {
     tool_use_id: string;
 
@@ -25,7 +43,7 @@ export interface ToolResultBlockParam {
 
     is_error?: boolean;
 }
-export type UserContent = Array<TextBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
+export type UserContent = Array<TextBlockParam | ToolUseBlockParam | ToolResultBlockParam | ImageBlockParam | AnthropicImageBlockParam>;
 
 const isUserMessage = (text: string) => text.includes('<feedback>') || text.includes('<answer>');
 
@@ -58,6 +76,15 @@ export const wrapUserMessage = async function (command: { userContent: UserConte
                     }
                 }
                 return block;
+            } else if (block.type === 'image_url') {
+                return block;
+            } else if (block.type === 'image') {
+                return {
+                    type: 'image_url',
+                    image_url: {
+                        url: `data:${block.source.media_type};base64,${block.source.data}`
+                    }
+                };
             } else if (block.type === 'tool_result') {
                 //递归输入的工具解析
                 if (typeof block.content === 'string' && isUserMessage(block.content)) {

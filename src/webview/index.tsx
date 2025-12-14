@@ -4,8 +4,8 @@ import { useIMStore } from '@/store/imStore/createStore'
 import { ChatMessage, MessageStatus, MessageType } from '@/type/imType/im'
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { ChatMessageUtils } from '@/utils/llmUtils/chat/chatMessageUtils';
-import { Input } from 'antd';
-import { SettingOutlined, SendOutlined, PoweroffOutlined, HistoryOutlined, ApiOutlined, MessageOutlined } from '@ant-design/icons'
+import { Input, message } from 'antd';
+import { SettingOutlined, SendOutlined, PoweroffOutlined, HistoryOutlined, ApiOutlined, MessageOutlined, PictureOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { uniqueId } from 'lodash'
 import MessageContent from './components/messageContent'
 import SettingsPanel from './components/SettingsPanel'
@@ -32,6 +32,34 @@ const Sidebar: React.FC<ISidebarProps> = () => {
   const [apiUrl, setApiUrl] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [isComposing, setIsComposing] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleSelectImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setSelectedImage(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    if (e.target) e.target.value = '';
+  };
+
+  const handleRemoveImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImage(null);
+  };
 
   const { chatMessages, chatLoading, compressing, totalTokens, todoList, mcpServers, mergeMessages, getLastMessage, initData, conversationId, setMcpServers } = useIMStore()
   const { containerRef } = useAutoScroll([chatMessages])
@@ -154,9 +182,11 @@ const Sidebar: React.FC<ISidebarProps> = () => {
           }
         },
         baseUrl: 'http://127.0.0.1:7001',
+        images: selectedImage ? [selectedImage] : []
       }
     });
     setQuestion(''); // 发送后清空输入框
+    setSelectedImage(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -328,6 +358,28 @@ const Sidebar: React.FC<ISidebarProps> = () => {
             </div>
 
             <div className={styles.inputContainer}>
+              <div className={styles.inputToolbar}>
+                <div className={styles.toolIcon} onClick={handleSelectImage} title="上传图片">
+                  <PictureOutlined />
+                </div>
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                hidden
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              {selectedImage && (
+                <div className={styles.imagePreviewArea}>
+                  <div className={styles.imagePreviewItem}>
+                    <img src={selectedImage} alt="Selected" />
+                    <div className={styles.removeImage} onClick={handleRemoveImage}>
+                      <CloseCircleOutlined />
+                    </div>
+                  </div>
+                </div>
+              )}
               <Input.TextArea
                 style={{ color: '#fff' }}
                 placeholder="请输入你的问题，比如：如何优化这段代码？（按 Enter 发送，Shift+Enter 换行）"
