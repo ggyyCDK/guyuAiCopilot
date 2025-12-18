@@ -7,7 +7,8 @@ import ToolWriteFileContent from './ToolWriteFileContent';
 import ToolReplaceInFileContent from './ToolReplaceInFileContent';
 import ToolListFilesContent from './ToolListFilesContent';
 import ToolAskFollowUpQuestionContent from './ToolAskFollowUpQuestionContent';
-import ToolUpdateTodoListContent from './ToolUpdateTodoListContent'
+import ToolUpdateTodoListContent from './ToolUpdateTodoListContent';
+import ToolUseMcpToolContent from './ToolUseMcpToolContent';
 
 interface MessageContentProps {
     message: ChatMessage
@@ -34,6 +35,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolAttempCompletionContent message={message}></ToolAttempCompletionContent>
                 case 'update_todo_list':
                     return <ToolUpdateTodoListContent message={message}></ToolUpdateTodoListContent>
+                case 'use_mcp_tool':
+                    return <ToolUseMcpToolContent message={message}></ToolUseMcpToolContent>
                 case 'ask_followup_question':
                     return <ToolAskFollowUpQuestionContent message={message}></ToolAskFollowUpQuestionContent>
             }
