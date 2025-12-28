@@ -12,14 +12,22 @@ const ToolUseMcpToolContent: FC<MessageContentProps> = ({ message }) => {
     const { params } = message.content;
     const { server_name, tool_name, arguments: args } = params;
 
-    let parsedArgs = args;
-    if (typeof args === 'string') {
+    let parsedArgs = null;
+    let isValidJson = false;
+
+    if (typeof args === 'object' && args !== null) {
+        parsedArgs = args;
+        isValidJson = true;
+    } else if (typeof args === 'string') {
         try {
             parsedArgs = JSON.parse(args);
-        } catch (e) { }
+            isValidJson = true;
+        } catch (e) {
+            isValidJson = false;
+        }
     }
 
-    const formattedArgs = JSON.stringify(parsedArgs, null, 2);
+    const formattedArgs = isValidJson ? JSON.stringify(parsedArgs, null, 2) : '';
 
     return (
         <ContentContainer title='调用 MCP 工具'>
@@ -35,11 +43,20 @@ const ToolUseMcpToolContent: FC<MessageContentProps> = ({ message }) => {
                     </div>
                 </div>
 
-                {formattedArgs !== '{}' && (
+                {isValidJson ? (
+                    formattedArgs !== '{}' && (
+                        <div className={styles.section}>
+                            <div className={styles.sectionTitle}>参数</div>
+                            <div className={styles.codeBlock}>
+                                <pre>{formattedArgs}</pre>
+                            </div>
+                        </div>
+                    )
+                ) : (
                     <div className={styles.section}>
                         <div className={styles.sectionTitle}>参数</div>
-                        <div className={styles.codeBlock}>
-                            <pre>{formattedArgs}</pre>
+                        <div className={styles.loading}>
+                            解析参数中...
                         </div>
                     </div>
                 )}
