@@ -190,6 +190,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
         },
         onComplete: (data) => {
           isCompleted = true
+          console.log('streamPromise onComplete is:', data)
           resolve()
         },
         onError: (error) => {
@@ -223,9 +224,11 @@ export const attemptApiRequestTypeWriter = async function* (command: ApiRequestP
       stream: outputStream,
       onMessage: (message) => {
         responseBufferList.push(message)
+        resolve()
       },
       onComplete: () => {
         isCompleted = true
+        console.log('typewriterPromise onComplete is:', isCompleted)
         resolve()
       }
     }).catch(err => {
