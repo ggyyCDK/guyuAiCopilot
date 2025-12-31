@@ -10,6 +10,7 @@ import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
 import { updateTodoList } from '@/helper/tools/updateTodoList';
 import { useMcpTooltoTool } from "@/helper/tools/useMcpToolTool";
+import { searchFiles } from "@/helper/tools/searchFiles";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -202,6 +203,16 @@ export const parseToolUse = async (block: ToolUse) => {
                 pushToolResult({ block, content: toolResult })
             }
             break;
+        }
+        case 'search_files': {
+            if (block.partial) {
+                break;
+            }
+            console.log('到了search_files', block)
+            const { toolResult } = await searchFiles({
+                toolUseCommand: block,
+            })
+            pushToolResult({ block, content: toolResult })
         }
         case 'use_mcp_tool': {
             if (block.partial) {

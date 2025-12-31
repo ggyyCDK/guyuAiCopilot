@@ -9,7 +9,7 @@ import ToolListFilesContent from './ToolListFilesContent';
 import ToolAskFollowUpQuestionContent from './ToolAskFollowUpQuestionContent';
 import ToolUpdateTodoListContent from './ToolUpdateTodoListContent';
 import ToolUseMcpToolContent from './ToolUseMcpToolContent';
-
+import ToolSearchFilesContent from './ToolSearchFilesContent';
 interface MessageContentProps {
     message: ChatMessage
 }
@@ -31,6 +31,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolReplaceInFileContent message={message}></ToolReplaceInFileContent>
                 case 'list_files':
                     return <ToolListFilesContent message={message}></ToolListFilesContent>
+                case 'search_files':
+                    return <ToolSearchFilesContent message={message}></ToolSearchFilesContent>
                 case 'attempt_completion':
                     return <ToolAttempCompletionContent message={message}></ToolAttempCompletionContent>
                 case 'update_todo_list':
