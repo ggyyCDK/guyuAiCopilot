@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import ReactMarkdown from 'react-markdown';
+import MarkdownBlocktoMessage from '@/webview/common/markdownBlocktoMessage';
 import { ChatMessage } from '@/type/imType/im';
 import ContentContainer from '../ContentContainer';
 import styles from './index.module.scss';
@@ -17,9 +18,7 @@ const ToolAttempCompletionContent: FC<MessageContentProps> = ({ message }) => {
             contentClassName={styles.attemptCompletionContent}
         >
             <div className={styles.pre}>
-                <ReactMarkdown>
-                    {content}
-                </ReactMarkdown>
+                <MarkdownBlocktoMessage markdown={content} />
             </div>
         </ContentContainer>
     );
