@@ -190,7 +190,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
         },
         onComplete: (data) => {
           isCompleted = true
-          console.log('streamPromise onComplete is:', data)
+          // console.log('streamPromise onComplete is:', data)
           resolve()
         },
         onError: (error) => {
@@ -201,7 +201,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
       reject(error)
     }
   })
-  console.log('responseBufferList is:', responseBufferList)
+  // console.log('responseBufferList is:', responseBufferList)
   while (!isCompleted || responseBufferList.length > 0) {
     const responseBuffer = responseBufferList.shift()
     if (responseBuffer) {
@@ -214,7 +214,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
   await streamPromise
 }
 
-//再包一层
+//再包一层打字机效果
 export const attemptApiRequestTypeWriter = async function* (command: ApiRequestParams) {
   const outputStream = attemptApiRequest(command);
   let responseBufferList: string[] = []
@@ -224,7 +224,6 @@ export const attemptApiRequestTypeWriter = async function* (command: ApiRequestP
       stream: outputStream,
       onMessage: (message) => {
         responseBufferList.push(message)
-        resolve()
       },
       onComplete: () => {
         isCompleted = true
@@ -238,8 +237,8 @@ export const attemptApiRequestTypeWriter = async function* (command: ApiRequestP
   })
 
   while (!isCompleted || responseBufferList.length > 0) {
-    const responseBuffer = responseBufferList.shift()
-    if (responseBuffer) {
+    if (responseBufferList.length > 0) {
+      const responseBuffer = responseBufferList.shift()
       yield responseBuffer
     } else {
       await new Promise(resolve => setTimeout(resolve, 50))

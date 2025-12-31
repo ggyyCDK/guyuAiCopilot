@@ -201,7 +201,25 @@ export function parseOriginAssistantMessage(command: { assistantMessage: string,
                 }
             }
             // 根据累加器从其起始索引更新文本内容
-            currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex).trimStart() // 修剪开头以避免文本跟随工具时的前导空格
+            let textValue = accumulator.slice(currentTextContentStartIndex).trimStart()
+
+            const lastOpenBracket = textValue.lastIndexOf('<');
+            if (lastOpenBracket !== -1) {
+                const potentialTag = textValue.slice(lastOpenBracket);
+                if (!potentialTag.includes('>')) {
+                    const contentAfterBracket = potentialTag.slice(1);
+                    const isPartialTag = toolUseNames.some(name => {
+                        if (name.startsWith(contentAfterBracket)) return true;
+                        if (contentAfterBracket.startsWith(name + ' ') || contentAfterBracket.startsWith(name + '\n')) return true;
+                        return false;
+                    });
+                    if (potentialTag === '<' || isPartialTag) {
+                        textValue = textValue.slice(0, lastOpenBracket);
+                    }
+                }
+            }
+
+            currentTextContent.content.text = textValue
         }
     } // 循环结束
 
@@ -222,7 +240,25 @@ export function parseOriginAssistantMessage(command: { assistantMessage: string,
     // 因为开始工具使用会完成前面的文本块。
     else if (currentTextContent) {
         // 最后一次更新内容
-        currentTextContent.content.text = accumulator.slice(currentTextContentStartIndex).trim()
+        let textValue = accumulator.slice(currentTextContentStartIndex).trim()
+
+        const lastOpenBracket = textValue.lastIndexOf('<');
+        if (lastOpenBracket !== -1) {
+            const potentialTag = textValue.slice(lastOpenBracket);
+            if (!potentialTag.includes('>')) {
+                const contentAfterBracket = potentialTag.slice(1);
+                const isPartialTag = toolUseNames.some(name => {
+                    if (name.startsWith(contentAfterBracket)) return true;
+                    if (contentAfterBracket.startsWith(name + ' ') || contentAfterBracket.startsWith(name + '\n')) return true;
+                    return false;
+                });
+                if (potentialTag === '<' || isPartialTag) {
+                    textValue = textValue.slice(0, lastOpenBracket);
+                }
+            }
+        }
+
+        currentTextContent.content.text = textValue
         // 仅在包含内容时添加可能部分的文本块
         if (currentTextContent.content.text.length > 0) {
             contentBlocks.push(currentTextContent)

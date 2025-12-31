@@ -1,4 +1,4 @@
-import { attemptApiRequestTypeWriter } from '@/handler';
+import { attemptApiRequestTypeWriter, attemptApiRequest } from '@/handler';
 import { wrapUserMessage } from '@/utils/llmRequest/wrapUserMessage'
 import { parseOriginAssistantMessage } from '@/utils/llmRequest/parseAssisantMessage'
 import { formatResponse } from '@/helper/responsePrompt/responseFormatter'
