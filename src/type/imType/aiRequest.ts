@@ -18,6 +18,7 @@ export interface ApiRequestParams {
     signal?: AbortSignal;
     mcpHubDataInfo?: any[];
     mcpHub?: boolean
+    skills?: any[]
 }
 
 export enum EventType {
@@ -43,6 +44,7 @@ export interface multiRoundTaskParams {
     mcpHubDataInfo?: any[];
     mcpHub?: boolean;
     images?: string[]; // base64 images
+    skills?: any[]
 }
 
 /**

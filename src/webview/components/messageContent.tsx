@@ -18,7 +18,6 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
     switch (message.type) {
 
         case MessageType.Text: {
-            console.log('text message is:', message.content)
             return <TextMessageContent message={message} />
         }
 

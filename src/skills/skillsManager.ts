@@ -29,11 +29,11 @@ export class SkillsManager {
     }
 
     /**
-     * Discover skills from .schooberAi/skills directory.
+     * Discover skills from .schoober/skills directory.
      */
     async discoverSkills(): Promise<void> {
         this.skills.clear()
-        const skillsDir = path.join(this.workspaceRoot, ".schooberAi", "skills")
+        const skillsDir = path.join(this.workspaceRoot, ".schoober", "skills")
 
         try {
             // Check if directory exists

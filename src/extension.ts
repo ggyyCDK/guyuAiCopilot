@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './provider';
 import { McpServerManager } from './mcp/McpServerManager';
+import { SkillsManager } from './skills/skillsManager';
+import * as path from 'path';
 
 /**
  * entry -> register webview
@@ -20,8 +22,16 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  // 初始化 SkillsManager
+  let skillsManager: SkillsManager | undefined;
+  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    skillsManager = new SkillsManager(workspaceRoot);
+    skillsManager.initialize().catch(err => console.error('Failed to initialize SkillsManager:', err));
+  }
+
   // 注册侧边栏视图
-  const sidebarPanel = new SidebarProvider(context);
+  const sidebarPanel = new SidebarProvider(context, skillsManager);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('vs-sidebar-view', sidebarPanel, {
       webviewOptions: {

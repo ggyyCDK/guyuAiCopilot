@@ -6,6 +6,7 @@ import { multiRoundTaskParams } from '@/type/imType/aiRequest'
 import { compressSessionContext, getWorkspaceCwd, fetchSessionList, saveChatMessage, getChatMessages } from '@/handler'
 import { multiRoundSharedState } from '@/utils/assisantPresentStore/multiRoundSharedState';
 import { McpServerManager } from './mcp/McpServerManager';
+import { SkillsManager } from './skills/skillsManager';
 export interface Message {
   type: string;
   question?: string;
@@ -17,7 +18,7 @@ export interface Message {
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
 
-  constructor(protected context: vscode.ExtensionContext) { }
+  constructor(protected context: vscode.ExtensionContext, private skillsManager?: SkillsManager) { }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -60,8 +61,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
         case 'stream-chat': {
           //发送之后，收取消息，发起多轮对话
+          let skills: any[] = []
+          if (this.skillsManager) {
+            skills = this.skillsManager.getAllSkills()
+          }
+          console.log('skills is', skills)
           StartMultiRoundTask({
             ...payload as multiRoundTaskParams,
+            skills
           }, webviewView)
           break;
         }

@@ -39,7 +39,8 @@ export function getWorkspaceCwd() {
  */
 export const streamAgentChat = async (command: ApiRequestParams) => {
   const { question, workerId, conversationId, baseUrl, variableMaps, mcpHubDataInfo,
-    mcpHub, onMessage, onIntervalMessage, onUsage, onComplete, onError } = command;
+    mcpHub, onMessage, onIntervalMessage, onUsage, onComplete, onError, skills } = command;
+  console.log('streamAgentChat skills is:', skills)
   const { llmConfig } = variableMaps ?? {}
   const { ak, ApiUrl } = llmConfig
   let content = ''
@@ -76,6 +77,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
       workerId,
       mcpHubDataInfo,
       mcpHub,
+      skills,
       variableMaps: {
         llmConfig: {
           cwdFormatted: currentCwd,
@@ -165,7 +167,7 @@ export const streamAgentChat = async (command: ApiRequestParams) => {
  */
 export const attemptApiRequest = async function* (command: ApiRequestParams) {
   const { question, workerId, conversationId, baseUrl, variableMaps, mcpHubDataInfo,
-    mcpHub } = command;
+    mcpHub, skills } = command;
 
   let responseBufferList: string[] = []
   let isCompleted = false
@@ -180,6 +182,7 @@ export const attemptApiRequest = async function* (command: ApiRequestParams) {
         baseUrl,
         mcpHubDataInfo,
         mcpHub,
+        skills,
         onIntervalMessage: (msg) => {
           responseBufferList.push(msg.segmentContent)
         },

@@ -15,7 +15,7 @@ export const nextId = () => {
 
 export const recursivelyMakeRequests = async function (command: multiRoundTaskParams, webviewView: vscode.WebviewView) {
 
-    const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails = false, mcpHubDataInfo, mcpHub } = command;
+    const { question, workerId, conversationId, baseUrl, variableMaps, includeFileDetails = false, mcpHubDataInfo, mcpHub, skills } = command;
 
     // 将 webviewView 保存到共享状态中，以便工具执行时可以访问
     multiRoundSharedState.webviewView = webviewView;
@@ -63,6 +63,7 @@ export const recursivelyMakeRequests = async function (command: multiRoundTaskPa
         signal: multiRoundSharedState.abortController?.signal,
         mcpHubDataInfo,
         mcpHub,
+        skills,
         onUsage: (usage) => {
             // 解析usage数据并发送到webview
             try {
