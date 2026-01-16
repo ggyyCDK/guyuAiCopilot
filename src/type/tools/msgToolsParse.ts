@@ -65,6 +65,7 @@ export const toolParamNames = [
     "steps_to_reproduce",
     "api_request_output",
     "additional_context",
+    "cwd",
 ] as const
 
 export type IToolExecutor = (

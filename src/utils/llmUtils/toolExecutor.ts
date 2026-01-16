@@ -14,6 +14,7 @@ import { searchFiles } from "@/helper/tools/searchFiles";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
+import { executeCommand } from "@/helper/tools/executeCommand";
 
 // 全局变量存储扫描动画控制器实例
 let scanAnimationController: ScanAnimationController | null = null;
@@ -161,6 +162,19 @@ export const parseToolUse = async (block: ToolUse) => {
             });
             console.log('替换完啦', toolResult);
             pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) });
+            break;
+        }
+        case 'execute_command': {
+            if (block.partial) {
+                console.log('execute_command is partial')
+                break
+            }
+            console.log('执行到execute_command啦！', block)
+            const { toolResult } = await executeCommand({
+                toolUseCommand: block,
+            })
+            console.log('execute_command result is:', toolResult)
+            pushToolResult({ block, content: toolResult })
             break;
         }
 

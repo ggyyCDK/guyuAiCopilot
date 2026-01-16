@@ -10,6 +10,7 @@ import ToolAskFollowUpQuestionContent from './ToolAskFollowUpQuestionContent';
 import ToolUpdateTodoListContent from './ToolUpdateTodoListContent';
 import ToolUseMcpToolContent from './ToolUseMcpToolContent';
 import ToolSearchFilesContent from './ToolSearchFilesContent';
+import ToolExecuteCommandContent from './ToolExecuteCommandContent';
 interface MessageContentProps {
     message: ChatMessage
 }
@@ -42,6 +43,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolUseMcpToolContent message={message}></ToolUseMcpToolContent>
                 case 'ask_followup_question':
                     return <ToolAskFollowUpQuestionContent message={message}></ToolAskFollowUpQuestionContent>
+                case 'execute_command':
+                    return <ToolExecuteCommandContent message={message}></ToolExecuteCommandContent>
             }
         }
 

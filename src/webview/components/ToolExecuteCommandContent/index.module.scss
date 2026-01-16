@@ -1,0 +1,46 @@
+
+.commandContainer {
+    padding: 8px 0;
+    font-family: var(--vscode-editor-font-family);
+}
+
+.commandHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    color: var(--vscode-textPreformat-foreground);
+}
+
+.commandText {
+    font-weight: 500;
+    word-break: break-all;
+    background-color: var(--vscode-textCodeBlock-background);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.cwdInfo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 4px;
+
+    .label {
+        opacity: 0.8;
+    }
+
+    .path {
+        opacity: 0.9;
+        font-family: monospace;
+    }
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+}
