@@ -314,7 +314,7 @@ export class McpHubSimple {
 
         const client = new Client(
             {
-                name: "Roo Code",
+                name: "SchooberAi",
                 version: this.version,
             },
             {

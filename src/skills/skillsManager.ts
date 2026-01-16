@@ -14,7 +14,7 @@ export interface SkillContent extends SkillMetadata {
 
 export class SkillsManager {
     private skills: Map<string, SkillMetadata> = new Map()
-    // The root directory of the project where .schooberAi/skills is located
+    // 项目根目录，其中包含 .schooberAi/skills
     private workspaceRoot: string
 
     constructor(workspaceRoot: string) {
@@ -22,24 +22,24 @@ export class SkillsManager {
     }
 
     /**
-     * Initialize the manager and load existing skills.
+     * 初始化管理器并加载现有的技能。
      */
     async initialize(): Promise<void> {
         await this.discoverSkills()
     }
 
     /**
-     * Discover skills from .schoober/skills directory.
+     * 从 .schoober/skills 目录发现技能。
      */
     async discoverSkills(): Promise<void> {
         this.skills.clear()
         const skillsDir = path.join(this.workspaceRoot, ".schoober", "skills")
 
         try {
-            // Check if directory exists
+            // 检查目录是否存在
             await fs.access(skillsDir)
         } catch {
-            // Directory doesn't exist, just return empty
+            // 目录不存在，直接返回空
             return
         }
 
@@ -57,20 +57,20 @@ export class SkillsManager {
     }
 
     /**
-     * Load skill metadata from a specific skill directory.
+     * 从特定的技能目录加载技能元数据。
      */
     private async loadSkillMetadata(skillDir: string): Promise<void> {
         const skillMdPath = path.join(skillDir, "SKILL.md")
 
         try {
-            // Check if SKILL.md exists
+            // 检查 SKILL.md 是否存在
             await fs.access(skillMdPath)
 
             const fileContent = await fs.readFile(skillMdPath, "utf-8")
-            // Parse frontmatter
+            // 解析 frontmatter
             const { data: frontmatter } = matter(fileContent)
 
-            // Basic validation
+            // 基本验证
             if (!frontmatter.name || typeof frontmatter.name !== "string") {
                 console.warn(`Skill at ${skillDir} is missing required 'name' field`)
                 return
@@ -80,26 +80,26 @@ export class SkillsManager {
                 return
             }
 
-            // Store metadata
+            // 存储元数据
             this.skills.set(frontmatter.name, {
                 name: frontmatter.name,
                 description: frontmatter.description,
                 path: skillMdPath,
             })
         } catch (error) {
-            // SKILL.md missing or not readable
+            // SKILL.md 缺失或不可读
         }
     }
 
     /**
-     * Get all loaded skills.
+     * 获取所有已加载的技能。
      */
     getAllSkills(): SkillMetadata[] {
         return Array.from(this.skills.values())
     }
 
     /**
-     * Get full content (instructions) for a specific skill.
+     * 获取特定技能的完整内容（说明）。
      */
     async getSkillContent(name: string): Promise<SkillContent | null> {
         const skill = this.skills.get(name)
@@ -111,7 +111,7 @@ export class SkillsManager {
 
             return {
                 ...skill,
-                instructions: content.trim(), // The body of the markdown file
+                instructions: content.trim(), // markdown 文件的正文
             }
         } catch (error) {
             console.error(`Failed to read skill content for ${name}:`, error)
