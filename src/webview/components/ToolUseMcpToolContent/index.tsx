@@ -3,6 +3,7 @@ import { ChatMessage } from '@/type/imType/im';
 import ContentContainer from '../ContentContainer';
 import { ApiOutlined, ToolOutlined } from '@ant-design/icons';
 import styles from './index.module.scss';
+import { getToolStatus, getToolStatusText } from '@/webview/utils/toolStatus';
 
 interface MessageContentProps {
     message: ChatMessage
@@ -11,6 +12,8 @@ interface MessageContentProps {
 const ToolUseMcpToolContent: FC<MessageContentProps> = ({ message }) => {
     const { params } = message.content;
     const { server_name, tool_name, arguments: args } = params;
+    const toolStatus = getToolStatus(message.status);
+    const statusText = getToolStatusText('use_mcp_tool', toolStatus);
 
     let parsedArgs = null;
     let isValidJson = false;
@@ -30,7 +33,7 @@ const ToolUseMcpToolContent: FC<MessageContentProps> = ({ message }) => {
     const formattedArgs = isValidJson ? JSON.stringify(parsedArgs, null, 2) : '';
 
     return (
-        <ContentContainer title='调用 MCP 工具'>
+        <ContentContainer title='调用 MCP 工具' status={toolStatus} statusText={statusText}>
             <div className={styles.container}>
                 <div className={styles.header}>
                     <div className={styles.serverTag}>

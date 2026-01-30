@@ -6,10 +6,54 @@
   cursor: pointer;
   height: auto;
   overflow: hidden;
+  position: relative;
 
   &:hover {
     border-color: #d4d4d8ff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  // 扫描动画状态
+  &.scanning {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(64, 169, 255, 0.15) 30%,
+        rgba(64, 169, 255, 0.3) 50%,
+        rgba(64, 169, 255, 0.15) 70%,
+        transparent 100%
+      );
+      animation: scanLeftRight 1.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .pathInfo, .content {
+      position: relative;
+      z-index: 2;
+    }
+  }
+}
+
+@keyframes scanLeftRight {
+  0% {
+    left: -30%;
+  }
+  50% {
+    left: 100%;
+  }
+  50.01% {
+    left: 100%;
+  }
+  100% {
+    left: -30%;
   }
 }
 
