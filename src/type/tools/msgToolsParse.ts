@@ -15,6 +15,7 @@ export const toolUseNames = [
     "read_file",
     "write_to_file",
     "replace_in_file",
+    "apply_diff",
     "search_files",
     "list_files",
     "list_code_definition_names",

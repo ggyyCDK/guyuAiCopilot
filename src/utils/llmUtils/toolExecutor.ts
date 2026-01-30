@@ -8,6 +8,7 @@ import { listFiles } from "@/helper/tools/listFiles";
 import { attemptCompletion } from "@/helper/tools/attemptCompletion";
 import { writeFile } from "@/helper/tools/writeFiles";
 import { replaceInFile } from "@/helper/tools/replaceInFile";
+import { applyDiff } from "@/helper/tools/applyDiff";
 import { updateTodoList } from '@/helper/tools/updateTodoList';
 import { useMcpTooltoTool } from "@/helper/tools/useMcpToolTool";
 import { searchFiles } from "@/helper/tools/searchFiles";
@@ -161,6 +162,71 @@ export const parseToolUse = async (block: ToolUse) => {
                 toolUseCommand: block,
             });
             console.log('替换完啦', toolResult);
+            pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) });
+            break;
+        }
+        case 'apply_diff': {
+            if (block.partial) {
+                console.log('apply_diff is partial');
+
+                // 获取文件路径，启动扫描动画
+                const originalPath = block.params.path;
+                if (originalPath) {
+                    try {
+                        const path = await import('path');
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        const workspaceRoot = workspaceFolders && workspaceFolders.length > 0
+                            ? workspaceFolders[0].uri.fsPath
+                            : undefined;
+
+                        const resolvedPath = path.isAbsolute(originalPath)
+                            ? originalPath
+                            : workspaceRoot
+                                ? path.join(workspaceRoot, originalPath)
+                                : originalPath;
+
+                        // 只在文件路径改变或首次启动时才创建新的扫描动画
+                        if (resolvedPath !== lastScannedPath) {
+                            if (scanAnimationController) {
+                                scanAnimationController.stop();
+                                scanAnimationController = null;
+                            }
+
+                            const fileUri = vscode.Uri.file(resolvedPath);
+                            const document = await vscode.workspace.openTextDocument(fileUri);
+                            const editor = await vscode.window.showTextDocument(document, {
+                                preview: false,
+                                viewColumn: vscode.ViewColumn.Active
+                            });
+
+                            scanAnimationController = new ScanAnimationController(editor);
+                            const totalLines = document.lineCount;
+                            const estimatedTime = Math.max(2000, Math.min(10000, 2000 + totalLines * 3));
+                            const scanSpeed = estimatedTime / totalLines;
+
+                            scanAnimationController.start(scanSpeed);
+                            lastScannedPath = resolvedPath;
+                        }
+                    } catch (error) {
+                        console.error('Failed to open file for scan animation:', error);
+                    }
+                }
+                break;
+            }
+
+            console.log('执行 apply_diff', block);
+
+            // 如果扫描动画正在运行，让它快速完成
+            if (scanAnimationController) {
+                await scanAnimationController.finishScanning();
+                scanAnimationController = null;
+            }
+            lastScannedPath = null;
+
+            const { toolResult } = await applyDiff({
+                toolUseCommand: block,
+            });
+            console.log('apply_diff 完成', toolResult);
             pushToolResult({ block, content: toolResult + getEnvironmentDetails(visibleFiles, openTabs) });
             break;
         }

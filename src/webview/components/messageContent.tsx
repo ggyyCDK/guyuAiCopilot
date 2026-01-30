@@ -5,6 +5,7 @@ import ToolAttempCompletionContent from './ToolAttempCompletionContent';
 import ToolReadFileContent from './ToolReadFileContent';
 import ToolWriteFileContent from './ToolWriteFileContent';
 import ToolReplaceInFileContent from './ToolReplaceInFileContent';
+import ToolApplyDiffContent from './ToolApplyDiffContent';
 import ToolListFilesContent from './ToolListFilesContent';
 import ToolAskFollowUpQuestionContent from './ToolAskFollowUpQuestionContent';
 import ToolUpdateTodoListContent from './ToolUpdateTodoListContent';
@@ -31,6 +32,8 @@ const MessageContent: FC<MessageContentProps> = ({ message }) => {
                     return <ToolWriteFileContent message={message}></ToolWriteFileContent>
                 case 'replace_in_file':
                     return <ToolReplaceInFileContent message={message}></ToolReplaceInFileContent>
+                case 'apply_diff':
+                    return <ToolApplyDiffContent message={message}></ToolApplyDiffContent>
                 case 'list_files':
                     return <ToolListFilesContent message={message}></ToolListFilesContent>
                 case 'search_files':

@@ -1,54 +1,57 @@
-import { useEffect, useRef, useState } from 'react';
-import throttle from 'lodash/throttle';
+import { useEffect, useRef } from 'react';
 
 export const useAutoScroll = (dependencies: any[] = []) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const lastScrollTopRef = useRef(0);
+  const shouldAutoScrollRef = useRef(true);
 
-  // 滚动事件监听
+  // 监听用户滚动行为
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleScroll = throttle(() => {
+    let lastScrollTop = container.scrollTop;
+    let ticking = false;
+
+    const updateScrollState = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-      const isScrollingUp = scrollTop < lastScrollTopRef.current;
+      const isScrollingUp = scrollTop < lastScrollTop;
 
-      lastScrollTopRef.current = scrollTop;
+      if (isScrollingUp) {
+        // 用户向上滚动，停止自动滚动
+        shouldAutoScrollRef.current = false;
+      } else if (isAtBottom) {
+        // 滚动到底部，恢复自动滚动
+        shouldAutoScrollRef.current = true;
+      }
 
-      setShouldAutoScroll(prev => (isScrollingUp ? false : isAtBottom ? true : prev));
-    }, 100);
-
-    container.addEventListener('scroll', handleScroll);
-
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      handleScroll.cancel();
+      lastScrollTop = scrollTop;
+      ticking = false;
     };
-  }, []);
 
-  // 自动滚动
-  useEffect(() => {
-    const scrollToBottom = () => {
-      const container = containerRef.current;
-      if (container && shouldAutoScroll) {
-        container.scrollTop = container.scrollHeight;
-        lastScrollTopRef.current = container.scrollTop;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollState);
+        ticking = true;
       }
     };
 
-    // 确保 currentCodeVersion 定位后滚动
-    setTimeout(() => {
-      scrollToBottom();
-    }, 300);
-  }, [dependencies, shouldAutoScroll]);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  
+  // 自动滚动到底部
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldAutoScrollRef.current) return;
+
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+  }, [dependencies]);
 
   return {
     containerRef,
-    shouldAutoScroll,
+    shouldAutoScroll: shouldAutoScrollRef.current,
   };
 };
