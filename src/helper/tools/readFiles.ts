@@ -6,14 +6,55 @@ import { IToolExecutor } from '@/type/tools/msgToolsParse'
 import { parseXml } from '@/utils/parse'
 const textDecoder = new TextDecoder('utf-8');
 
+interface LineRange {
+    start: number;
+    end: number;
+}
+
 interface FileEntry {
     path?: string;
+    lineRanges?: LineRange[];
 }
 
 interface FileResult {
     path: string;
     content?: string;
     error?: string;
+    lineRanges?: LineRange[];
+}
+
+/**
+ * 从文件内容中提取指定行范围的内容
+ * @param content 完整文件内容
+ * @param lineRanges 行范围数组，1-based inclusive
+ * @returns 包含行号的内容片段数组
+ */
+function extractLineRanges(content: string, lineRanges: LineRange[]): string[] {
+    const lines = content.split('\n');
+    const results: string[] = [];
+    
+    for (const range of lineRanges) {
+        // 验证行范围
+        if (range.start > range.end) {
+            results.push(`<error>Invalid line range: end line (${range.end}) cannot be less than start line (${range.start})</error>`);
+            continue;
+        }
+        if (range.start < 1) {
+            results.push(`<error>Invalid line range: start line must be >= 1</error>`);
+            continue;
+        }
+        
+        // 提取指定行范围 (1-based to 0-based)
+        const startIdx = range.start - 1;
+        const endIdx = Math.min(range.end, lines.length);
+        const rangeLines = lines.slice(startIdx, endIdx);
+        
+        // 添加行号
+        const numberedContent = addLineNumbers(rangeLines.join('\n'), range.start);
+        results.push(`<content lines="${range.start}-${endIdx}">\n${numberedContent}</content>`);
+    }
+    
+    return results;
 }
 
 /**
@@ -41,7 +82,27 @@ export const readFile: IToolExecutor = async (command) => {
 
             for (const file of files) {
                 if (!file.path) continue;
-                fileEntries.push({ path: file.path });
+                
+                const fileEntry: FileEntry = {
+                    path: file.path,
+                    lineRanges: [],
+                };
+
+                // 解析 line_range 参数
+                if (file.line_range) {
+                    const ranges = Array.isArray(file.line_range) ? file.line_range : [file.line_range];
+                    for (const range of ranges) {
+                        const match = String(range).match(/(\d+)-(\d+)/);
+                        if (match) {
+                            const [, start, end] = match.map(Number);
+                            if (!isNaN(start) && !isNaN(end)) {
+                                fileEntry.lineRanges?.push({ start, end });
+                            }
+                        }
+                    }
+                }
+                
+                fileEntries.push(fileEntry);
             }
         } catch (error) {
             const errorMessage = `Failed to parse read_file XML args: ${error instanceof Error ? error.message : String(error)}`;
@@ -82,12 +143,26 @@ export const readFile: IToolExecutor = async (command) => {
         try {
             const fileUri = vscode.Uri.file(resolvedPath);
             const fileBuffer = await vscode.workspace.fs.readFile(fileUri);
-            const content = addLineNumbers(textDecoder.decode(fileBuffer));
+            const fullContent = textDecoder.decode(fileBuffer);
             
-            fileResults.push({
-                path: originalPath,
-                content: content
-            });
+            // 检查是否有行范围限制
+            if (entry.lineRanges && entry.lineRanges.length > 0) {
+                // 按行范围读取
+                const rangeContents = extractLineRanges(fullContent, entry.lineRanges);
+                fileResults.push({
+                    path: originalPath,
+                    content: rangeContents.join('\n'),
+                    lineRanges: entry.lineRanges
+                });
+            } else {
+                // 读取整个文件
+                const content = addLineNumbers(fullContent);
+                const totalLines = fullContent.split('\n').length;
+                fileResults.push({
+                    path: originalPath,
+                    content: `<content lines="1-${totalLines}">\n${content}</content>`
+                });
+            }
         } catch (error: any) {
             const message = error instanceof Error ? error.message : String(error);
             fileResults.push({
