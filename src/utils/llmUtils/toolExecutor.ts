@@ -12,6 +12,7 @@ import { applyDiff } from "@/helper/tools/applyDiff";
 import { updateTodoList } from '@/helper/tools/updateTodoList';
 import { useMcpTooltoTool } from "@/helper/tools/useMcpToolTool";
 import { searchFiles } from "@/helper/tools/searchFiles";
+import { searchMemory } from "@/helper/tools/searchMemory";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -303,6 +304,17 @@ export const parseToolUse = async (block: ToolUse) => {
                 toolUseCommand: block,
             })
             pushToolResult({ block, content: toolResult })
+        }
+        case 'search_memory': {
+            if (block.partial) {
+                break;
+            }
+            console.log('到了search_memory', block)
+            const { toolResult } = await searchMemory({
+                toolUseCommand: block,
+            })
+            pushToolResult({ block, content: toolResult })
+            break;
         }
         // case 'access_mcp_resource': {
         //     if (block.partial) {

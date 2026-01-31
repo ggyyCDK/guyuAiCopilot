@@ -1,12 +1,32 @@
 import { recursivelyMakeRequests } from "./recursivelyMakeRequests"
 import { multiRoundTaskParams } from "@/type/imType/aiRequest"
 import { multiRoundSharedState } from "../assisantPresentStore/multiRoundSharedState"
+import { initConversation, writeMemory, incrementTurn } from "@/helper/tools/memoryWriter"
 import * as vscode from 'vscode'
 
 export const StartMultiRoundTask = async function (command: multiRoundTaskParams, webview: vscode.WebviewView) {
     //开启一次多轮对话
     multiRoundSharedState.abortController = new AbortController();
     multiRoundSharedState.abort = false;
+
+    // 初始化新的对话记忆
+    initConversation();
+    incrementTurn();
+
+    // 提取用户消息文本
+    const userMessageText = typeof command.question === 'string' 
+        ? command.question 
+        : Array.isArray(command.question) 
+            ? command.question.map(q => typeof q === 'string' ? q : q.text || '').join(' ')
+            : '';
+
+    // 写入用户消息到记忆
+    if (userMessageText) {
+        writeMemory({
+            role: 'user',
+            content: userMessageText
+        });
+    }
 
     const questionContent: any[] = [{ type: "text", text: command.question }];
 

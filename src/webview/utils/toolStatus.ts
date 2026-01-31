@@ -77,6 +77,11 @@ export const toolStatusTextMap: Record<string, Record<ToolStatus, string>> = {
         complete: '',
         error: '',
     },
+    search_memory: {
+        pending: '正在搜索记忆...',
+        complete: '搜索完成',
+        error: '搜索失败',
+    },
 };
 
 /**
