@@ -82,6 +82,11 @@ export const toolStatusTextMap: Record<string, Record<ToolStatus, string>> = {
         complete: '搜索完成',
         error: '搜索失败',
     },
+    search_knowledge_base: {
+        pending: '正在检索知识库...',
+        complete: '检索完成',
+        error: '检索失败',
+    },
 };
 
 /**

@@ -33,6 +33,7 @@ export const toolUseNames = [
     "new_rule",
     "web_fetch",
     "search_memory",
+    "search_knowledge_base",
 ] as const
 
 // Converts array of tool call names into a union type ("execute_command" | "read_file" | ...)
@@ -70,6 +71,11 @@ export const toolParamNames = [
     "cwd",
     "query",
     "limit",
+    "collection",
+    "topk",
+    "score_threshold",
+    "use_rerank",
+    "rerank_top_n",
 ] as const
 
 export type IToolExecutor = (

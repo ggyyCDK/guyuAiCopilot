@@ -13,6 +13,7 @@ import { updateTodoList } from '@/helper/tools/updateTodoList';
 import { useMcpTooltoTool } from "@/helper/tools/useMcpToolTool";
 import { searchFiles } from "@/helper/tools/searchFiles";
 import { searchMemory } from "@/helper/tools/searchMemory";
+import { searchKnowledgeBase } from "@/helper/tools/searchKnowledgeBase";
 import { ScanAnimationController } from "@/utils/llmUtils/diffView/ScanAnimationController";
 import * as vscode from 'vscode';
 import { getEnvironmentDetails, getVisibleFiles, getOpenTabs } from "@/helper/environment/getEnvironmentDetails";
@@ -311,6 +312,17 @@ export const parseToolUse = async (block: ToolUse) => {
             }
             console.log('到了search_memory', block)
             const { toolResult } = await searchMemory({
+                toolUseCommand: block,
+            })
+            pushToolResult({ block, content: toolResult })
+            break;
+        }
+        case 'search_knowledge_base': {
+            if (block.partial) {
+                break;
+            }
+            console.log('到了search_knowledge_base', block)
+            const { toolResult } = await searchKnowledgeBase({
                 toolUseCommand: block,
             })
             pushToolResult({ block, content: toolResult })
