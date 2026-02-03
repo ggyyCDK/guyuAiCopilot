@@ -10,6 +10,7 @@ interface QdrantResult {
         [key: string]: any;
     };
     rerank_score?: number;
+    original_score?: number;
 }
 
 interface QdrantQueryResponse {
@@ -26,18 +27,83 @@ interface QdrantQueryResponse {
     message?: string;
 }
 
+export interface RagStats {
+    returnRate: number;      // 返回率: results.length / topk
+    highScoreRate: number;   // 高分命中率: score > threshold 的数量 / results.length
+    avgScore: number;        // 平均分数
+    rerankBoostRate: number; // Rerank 提升率: rerank_score > original_score 的比例
+    totalResults: number;    // 返回结果数
+    requestedTopk: number;   // 请求的 topk
+}
+
+/**
+ * 计算 RAG 检索统计指标
+ */
+function calculateRagStats(
+    results: QdrantResult[], 
+    topk: number, 
+    scoreThreshold: number = 0.6
+): RagStats {
+    const totalResults = results.length;
+    
+    // 返回率
+    const returnRate = topk > 0 ? totalResults / topk : 0;
+    
+    // 平均分数 (使用 rerank_score 如果有，否则使用 score)
+    const scores = results.map(r => r.rerank_score ?? r.score);
+    const avgScore = scores.length > 0 
+        ? scores.reduce((sum, s) => sum + s, 0) / scores.length 
+        : 0;
+    
+    // 高分命中率
+    const highScoreCount = scores.filter(s => s >= scoreThreshold).length;
+    const highScoreRate = totalResults > 0 ? highScoreCount / totalResults : 0;
+    
+    // Rerank 提升率 (只有启用 rerank 时才计算)
+    const rerankResults = results.filter(r => 
+        r.rerank_score !== undefined && r.original_score !== undefined
+    );
+    const boostedCount = rerankResults.filter(r => 
+        r.rerank_score! > r.original_score!
+    ).length;
+    const rerankBoostRate = rerankResults.length > 0 
+        ? boostedCount / rerankResults.length 
+        : -1; // -1 表示未启用 rerank
+    
+    return {
+        returnRate,
+        highScoreRate,
+        avgScore,
+        rerankBoostRate,
+        totalResults,
+        requestedTopk: topk
+    };
+}
+
 /**
  * 格式化知识库搜索结果为XML字符串
  */
 function formatKnowledgeBaseResults(
     results: QdrantResult[], 
     query: string, 
-    collectionName: string
+    collectionName: string,
+    stats: RagStats
 ): string {
+    // 统计信息部分
+    const statsXml = `<stats>
+    <return_rate>${(stats.returnRate * 100).toFixed(1)}</return_rate>
+    <high_score_rate>${(stats.highScoreRate * 100).toFixed(1)}</high_score_rate>
+    <avg_score>${stats.avgScore.toFixed(4)}</avg_score>
+    <rerank_boost_rate>${stats.rerankBoostRate >= 0 ? (stats.rerankBoostRate * 100).toFixed(1) : 'N/A'}</rerank_boost_rate>
+    <total_results>${stats.totalResults}</total_results>
+    <requested_topk>${stats.requestedTopk}</requested_topk>
+  </stats>`;
+
     if (results.length === 0) {
         return `<knowledge_base_search_results>
 <query>${escapeXml(query)}</query>
 <collection>${escapeXml(collectionName)}</collection>
+${statsXml}
 <message>No relevant documents found in the knowledge base.</message>
 </knowledge_base_search_results>`;
     }
@@ -67,6 +133,7 @@ ${metadata ? metadata + '\n' : ''}  </result>`;
     return `<knowledge_base_search_results count="${results.length}">
 <query>${escapeXml(query)}</query>
 <collection>${escapeXml(collectionName)}</collection>
+${statsXml}
 ${formattedResults.join('\n')}
 </knowledge_base_search_results>`;
 }
@@ -162,8 +229,13 @@ export const searchKnowledgeBase: IToolExecutor = async (command) => {
         const results = response.data.data.results || [];
         console.log('[SearchKnowledgeBase] Found', results.length, 'results');
 
+        // 计算统计指标
+        const stats = calculateRagStats(results, topk, scoreThreshold || 0.6);
+        console.log('[SearchKnowledgeBase] Stats:', stats);
+
         return {
-            toolResult: formatKnowledgeBaseResults(results, query, collectionName)
+            toolResult: formatKnowledgeBaseResults(results, query, collectionName, stats),
+            extra: { ragStats: stats }
         };
 
     } catch (error: any) {

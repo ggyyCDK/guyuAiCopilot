@@ -107,6 +107,25 @@ export const createProviderMessageHandler = (setError: (error: string) => void) 
                     payload: { view: 'chat', conversationId: sessionId }
                 }, '*');
                 break;
+
+            case 'update-rag-stats':
+                // 更新 RAG 统计数据到对应消息的 ext 字段
+                const { msgId, ragStats } = payload;
+                const currentMessages = useIMStore.getState().chatMessages;
+                const updatedMessages = currentMessages.map(msg => {
+                    if (msg.msgId === msgId) {
+                        return {
+                            ...msg,
+                            ext: {
+                                ...msg.ext,
+                                ragStats
+                            }
+                        };
+                    }
+                    return msg;
+                });
+                useIMStore.setState({ chatMessages: updatedMessages });
+                break;
         }
     };
 };

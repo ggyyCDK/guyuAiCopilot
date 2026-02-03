@@ -83,7 +83,7 @@ export type IToolExecutor = (
         toolUseCommand: ToolUse
     },
     callBack?: () => Promise<any>
-) => Promise<{ toolResult: string }>
+) => Promise<{ toolResult: string; extra?: Record<string, any> }>
 
 export type ToolParamName = (typeof toolParamNames)[number]
 

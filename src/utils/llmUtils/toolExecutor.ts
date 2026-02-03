@@ -322,10 +322,21 @@ export const parseToolUse = async (block: ToolUse) => {
                 break;
             }
             console.log('到了search_knowledge_base', block)
-            const { toolResult } = await searchKnowledgeBase({
+            const { toolResult, extra } = await searchKnowledgeBase({
                 toolUseCommand: block,
             })
             pushToolResult({ block, content: toolResult })
+            
+            // 发送统计数据到前端
+            if (extra?.ragStats && multiRoundSharedState.webviewView) {
+                multiRoundSharedState.webviewView.webview.postMessage({
+                    type: 'update-rag-stats',
+                    payload: {
+                        msgId: block.id,
+                        ragStats: extra.ragStats
+                    }
+                });
+            }
             break;
         }
         // case 'access_mcp_resource': {
