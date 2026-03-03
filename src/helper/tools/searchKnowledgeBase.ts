@@ -42,7 +42,7 @@ export interface RagStats {
 function calculateRagStats(
     results: QdrantResult[], 
     topk: number, 
-    scoreThreshold: number = 0.6
+    scoreThreshold: number = 0.4
 ): RagStats {
     const totalResults = results.length;
     
@@ -60,12 +60,30 @@ function calculateRagStats(
     const highScoreRate = totalResults > 0 ? highScoreCount / totalResults : 0;
     
     // Rerank 提升率 (只有启用 rerank 时才计算)
+    // 计算因rerank而获得更靠前排序位次的文档数量
     const rerankResults = results.filter(r => 
         r.rerank_score !== undefined && r.original_score !== undefined
     );
-    const boostedCount = rerankResults.filter(r => 
-        r.rerank_score! > r.original_score!
-    ).length;
+    
+    let boostedCount = 0;
+    if (rerankResults.length > 0) {
+        // 当前顺序就是按 rerank_score 排序后的顺序
+        // 计算按 original_score 排序时每个文档的位置
+        const originalOrder = [...rerankResults].sort((a, b) => 
+            b.original_score! - a.original_score!
+        );
+        
+        // 对比每个文档: 如果当前位置比按original_score排序时的位置更靠前，则计为提升
+        for (let currentIdx = 0; currentIdx < rerankResults.length; currentIdx++) {
+            const doc = rerankResults[currentIdx];
+            const originalIdx = originalOrder.findIndex(d => d.id === doc.id);
+            if (currentIdx < originalIdx) {
+                // 当前位置更靠前，说明rerank提升了这个文档
+                boostedCount++;
+            }
+        }
+    }
+    
     const rerankBoostRate = rerankResults.length > 0 
         ? boostedCount / rerankResults.length 
         : -1; // -1 表示未启用 rerank
@@ -165,13 +183,25 @@ export const searchKnowledgeBase: IToolExecutor = async (command) => {
     const query = params.query?.trim();
     const collectionName = params.collection || getDefaultCollectionName();
     const topk = params.topk ? parseInt(params.topk, 10) : defaultParams.topk;
+    // scoreThreshold 强制最低 0.6
     const scoreThreshold = params.score_threshold 
-        ? parseFloat(params.score_threshold) 
-        : defaultParams.scoreThreshold;
+        ? Math.max(parseFloat(params.score_threshold), 0.4)
+        : defaultParams.scoreThreshold || 0.4;
     const useRerank = params.use_rerank === 'true' || defaultParams.useRerank;
     const rerankTopN = params.rerank_top_n 
         ? parseInt(params.rerank_top_n, 10) 
         : defaultParams.rerankTopN;
+    
+    // 解析 filter 参数 (JSON 字符串)
+    let filter: Record<string, any> | undefined;
+    if (params.filter) {
+        try {
+            filter = JSON.parse(params.filter);
+            console.log('[SearchKnowledgeBase] Parsed filter:', filter);
+        } catch (e) {
+            console.error('[SearchKnowledgeBase] Failed to parse filter:', e);
+        }
+    }
 
     // 参数验证
     if (!query) {
@@ -185,7 +215,8 @@ export const searchKnowledgeBase: IToolExecutor = async (command) => {
         collectionName,
         topk,
         scoreThreshold,
-        useRerank
+        useRerank,
+        filter
     });
 
     try {
@@ -203,6 +234,10 @@ export const searchKnowledgeBase: IToolExecutor = async (command) => {
         }
         if (rerankTopN !== undefined) {
             requestBody.rerankTopN = rerankTopN;
+        }
+        // 添加 filter 参数
+        if (filter) {
+            requestBody.filter = filter;
         }
 
         // 调用后端Qdrant查询接口

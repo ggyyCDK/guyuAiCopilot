@@ -288,6 +288,7 @@ export class McpHubSimple {
     // ========================================================================
 
     private async connectToServer(name: string, config: any): Promise<void> {
+        console.log('connectToServer', name, config)
         await this.deleteConnection(name)
 
         if (config.disabled) {

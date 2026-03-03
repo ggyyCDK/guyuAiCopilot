@@ -74,6 +74,7 @@ export const toolParamNames = [
     "collection",
     "topk",
     "score_threshold",
+    "filter",
     "use_rerank",
     "rerank_top_n",
 ] as const
